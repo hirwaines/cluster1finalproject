@@ -1,13 +1,14 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Brain, ArrowLeft, Lock, Eye, EyeOff, Shield, CheckCircle, ChevronDown, ExternalLink } from 'lucide-react';
+import { Brain, ArrowLeft, Lock, Eye, EyeOff, Shield, CheckCircle, ExternalLink } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { UserRole } from '../context/AppContext';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { api } from '../services/api';
 
 function dashboardPathForRole(role: UserRole): string {
   switch (role) {
@@ -19,115 +20,93 @@ function dashboardPathForRole(role: UserRole): string {
   }
 }
 
-const DEMO_ACCOUNTS = [
-  { role: 'Researcher', label: 'Dr. Sarah Chen', email: 'sarah.chen@auca.edu', password: 'password', description: 'Feed, profile, collaborators, analytics' },
-  { role: 'Department Head', label: 'Dr. Claver Ndahayo', email: 'department.head@auca.edu', password: 'password', description: 'Department dashboard — Academic Affairs' },
-  { role: 'Research Manager', label: 'Assoc. Prof. Kayigema Jacques', email: 'manager@researchiq.com', password: 'manager', description: 'Institution metrics and reports' },
-  { role: 'Funder', label: 'East Africa Research Impact Fund', email: 'funder@impact.org', password: 'funder', description: 'Discover projects, express interest, RFPs' },
-  { role: 'Admin', label: 'Admin User', email: 'admin@researchiq.com', password: 'admin', description: 'Verifications, users, data import (MFA: 123456)' },
-];
-
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
-  const [pendingUser, setPendingUser] = useState<ReturnType<typeof login>>(null);
+  const [mfaLoading, setMfaLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoverySent, setRecoverySent] = useState(false);
-  const [showDemoDialog, setShowDemoDialog] = useState(false);
   const [orcidLoading, setOrcidLoading] = useState(false);
 
-  const doLogin = (e: React.FormEvent) => {
+  const { user } = useApp();
+
+  const doLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       toast.error('Please enter your email and password.');
       return;
     }
-    const loggedIn = login(email, password);
-    if (loggedIn) {
-      if (loggedIn.role === 'admin') {
-        setPendingUser(loggedIn);
+    setLoading(true);
+    try {
+      const result = await login(email.trim(), password);
+      if (result.mfaRequired) {
         setMfaStep(true);
-        toast.info('MFA code sent to your registered device. Demo code: 123456');
+        toast.info('A verification code has been sent to your registered email.');
       } else {
         toast.success('Welcome back!');
-        navigate(dashboardPathForRole(loggedIn.role));
+        // user is set in context; role comes from stored user
+        const stored = JSON.parse(localStorage.getItem('riq_user') || 'null');
+        navigate(dashboardPathForRole(stored?.role || 'researcher'));
       }
-      return;
-    }
-    // Prototype fallback: infer intended role from password and route to matching demo account
-    const fallbackEmail =
-      password === 'admin'   ? 'admin@researchiq.com' :
-      password === 'manager' ? 'manager@researchiq.com' :
-      password === 'funder'  ? 'funder@impact.org' :
-      password === 'password' && email.includes('department') ? 'department.head@auca.edu' :
-      'sarah.chen@auca.edu';
-    const fallbackPassword =
-      password === 'admin'   ? 'admin' :
-      password === 'manager' ? 'manager' :
-      password === 'funder'  ? 'funder' :
-      'password';
-    const fallback = login(fallbackEmail, fallbackPassword);
-    if (fallback) {
-      if (fallback.role === 'admin') {
-        setPendingUser(fallback);
-        setMfaStep(true);
-        toast.info('MFA code sent to your registered device. Demo code: 123456');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      if (msg.includes('pending')) {
+        toast.error('Your account is pending admin approval. You will be notified by email.');
+      } else if (msg.includes('disabled')) {
+        toast.error('Your account has been disabled. Contact support.');
       } else {
-        toast.success('Welcome back!');
-        navigate(dashboardPathForRole(fallback.role));
+        toast.error('Invalid email or password.');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleMfaVerify = () => {
-    if (mfaCode === '123456') {
-      toast.success('MFA verified. Welcome back!');
-      navigate(dashboardPathForRole(pendingUser!.role));
-    } else {
-      toast.error('Invalid MFA code. Try again.');
+  const handleMfaVerify = async () => {
+    if (!mfaCode.trim()) { toast.error('Enter the verification code.'); return; }
+    setMfaLoading(true);
+    try {
+      await login(email.trim(), password, mfaCode.trim());
+      toast.success('Verified. Welcome back!');
+      const stored = JSON.parse(localStorage.getItem('riq_user') || 'null');
+      navigate(dashboardPathForRole(stored?.role || 'admin'));
+    } catch {
+      toast.error('Invalid or expired code. Try again.');
+    } finally {
+      setMfaLoading(false);
     }
   };
 
-  const handleForgotPassword = (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!recoveryEmail.trim()) { toast.error('Enter your email address'); return; }
+    try {
+      await api.post('/auth/password-reset/request', { email: recoveryEmail.trim() });
+    } catch { /* backend may not have email configured; show success regardless */ }
     setRecoverySent(true);
-    toast.success('Password reset link sent.');
+    toast.success('If that email exists, a reset code has been sent.');
   };
 
   const handleOrcidLogin = () => {
     setOrcidLoading(true);
-    // Simulate ORCID OAuth redirect and data fetch
     setTimeout(() => {
-      const orcidUser = login('sarah.chen@auca.edu', 'password');
       setOrcidLoading(false);
-      if (orcidUser) {
-        toast.success('ORCID authentication successful. Publications and profile imported.');
-        navigate(dashboardPathForRole(orcidUser.role));
-      }
-    }, 1800);
+      toast.info('ORCID sign-in is not yet configured. Please use email and password.');
+    }, 800);
   };
 
-  const quickLogin = (demoEmail: string, demoPassword: string) => {
-    setShowDemoDialog(false);
-    const loggedIn = login(demoEmail, demoPassword);
-    if (loggedIn) {
-      if (loggedIn.role === 'admin') {
-        setPendingUser(loggedIn);
-        setMfaStep(true);
-        toast.info('MFA required for admin. Demo code: 123456');
-      } else {
-        toast.success('Signed in successfully!');
-        navigate(dashboardPathForRole(loggedIn.role));
-      }
-    }
-  };
+  // Redirect if already logged in
+  if (user) {
+    navigate(dashboardPathForRole(user.role));
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
@@ -147,9 +126,7 @@ export function LoginPage() {
           <div className="w-14 h-14 bg-blue-900 rounded-xl flex items-center justify-center mb-3 shadow-md">
             <Brain className="w-8 h-8 text-white" />
           </div>
-          <span className="font-bold text-2xl text-blue-900">
-            ResearchIQ
-          </span>
+          <span className="font-bold text-2xl text-blue-900">ResearchIQ</span>
           <p className="text-gray-500 text-sm mt-1">Sign in to your account</p>
         </div>
 
@@ -162,9 +139,10 @@ export function LoginPage() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="your.email@auca.edu"
+                placeholder="your.email@institution.edu"
                 required
                 className="mt-1"
+                autoComplete="email"
               />
             </div>
             <div>
@@ -178,6 +156,7 @@ export function LoginPage() {
                   placeholder="••••••••"
                   required
                   className="pr-10"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -206,9 +185,22 @@ export function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-blue-900 hover:bg-blue-950 text-white font-semibold"
+              disabled={loading}
             >
-              <Lock className="w-4 h-4 mr-2" />
-              Sign In
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Sign In
+                </>
+              )}
             </Button>
 
             <div className="relative">
@@ -264,29 +256,43 @@ export function LoginPage() {
                 <Shield className="w-8 h-8 text-blue-800" />
               </div>
               <h2 className="text-xl font-bold mb-1">Two-Factor Authentication</h2>
-              <p className="text-sm text-gray-500">Enter the 6-digit code sent to your registered device.</p>
+              <p className="text-sm text-gray-500">Enter the 6-digit code sent to your registered email.</p>
             </div>
             <div>
               <Label htmlFor="mfaCode">Authentication Code</Label>
               <Input
                 id="mfaCode"
                 value={mfaCode}
-                onChange={e => setMfaCode(e.target.value)}
+                onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
                 maxLength={6}
                 className="mt-1 text-center text-2xl tracking-widest"
+                autoComplete="one-time-code"
               />
             </div>
             <Button
               onClick={handleMfaVerify}
               className="w-full bg-blue-900 hover:bg-blue-950"
+              disabled={mfaLoading}
             >
-              <Shield className="w-4 h-4 mr-2" />
-              Verify Code
+              {mfaLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Verifying...
+                </span>
+              ) : (
+                <>
+                  <Shield className="w-4 h-4 mr-2" />
+                  Verify Code
+                </>
+              )}
             </Button>
             <button
               type="button"
-              onClick={() => { setMfaStep(false); setPendingUser(null); setMfaCode(''); }}
+              onClick={() => { setMfaStep(false); setMfaCode(''); }}
               className="w-full text-sm text-gray-500 hover:text-gray-700"
             >
               ← Back to login
@@ -294,15 +300,6 @@ export function LoginPage() {
           </div>
         )}
       </div>
-
-      {/* Discreet demo access — for reviewers only */}
-      <button
-        onClick={() => setShowDemoDialog(true)}
-        className="mt-6 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <ChevronDown className="w-3 h-3" />
-        Demo Access
-      </button>
 
       {/* Forgot Password Dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
@@ -312,7 +309,7 @@ export function LoginPage() {
           </DialogHeader>
           {!recoverySent ? (
             <form onSubmit={handleForgotPassword} className="space-y-4">
-              <p className="text-sm text-gray-600">Enter your registered email and we'll send a reset link.</p>
+              <p className="text-sm text-gray-600">Enter your registered email and we'll send a reset code.</p>
               <div>
                 <Label htmlFor="recoveryEmail">Email Address</Label>
                 <Input
@@ -320,63 +317,24 @@ export function LoginPage() {
                   type="email"
                   value={recoveryEmail}
                   onChange={e => setRecoveryEmail(e.target.value)}
-                  placeholder="your.email@auca.edu"
+                  placeholder="your.email@institution.edu"
                   required
                   className="mt-1"
                 />
               </div>
               <div className="flex gap-3">
                 <Button type="button" variant="outline" className="flex-1" onClick={() => setShowForgotPassword(false)}>Cancel</Button>
-                <Button type="submit" className="flex-1 bg-blue-900 hover:bg-blue-950">Send Reset Link</Button>
+                <Button type="submit" className="flex-1 bg-blue-900 hover:bg-blue-950">Send Reset Code</Button>
               </div>
             </form>
           ) : (
             <div className="text-center py-4 space-y-4">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
-              <h3 className="text-lg font-bold">Reset link sent!</h3>
-              <p className="text-sm text-gray-600">Check your email at <strong>{recoveryEmail}</strong>. The link expires in 30 minutes.</p>
+              <h3 className="text-lg font-bold">Reset code sent!</h3>
+              <p className="text-sm text-gray-600">Check your inbox at <strong>{recoveryEmail}</strong>. The code expires in 15 minutes.</p>
               <Button className="w-full bg-blue-900" onClick={() => { setShowForgotPassword(false); setRecoverySent(false); setRecoveryEmail(''); }}>Done</Button>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Demo Accounts Dialog */}
-      <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-900 rounded flex items-center justify-center">
-                <Brain className="w-4 h-4 text-white" />
-              </div>
-              Demo Accounts
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-gray-500 -mt-2 mb-1">Click any account to sign in instantly and explore that role's dashboard.</p>
-          <div className="space-y-2">
-            {DEMO_ACCOUNTS.map(acc => (
-              <button
-                key={acc.email}
-                type="button"
-                onClick={() => quickLogin(acc.email, acc.password)}
-                className="w-full p-3 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all text-left group"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-blue-800 uppercase tracking-wide">{acc.role}</span>
-                    <div className="font-medium text-gray-800 text-sm">{acc.label}</div>
-                    <div className="text-xs text-gray-500">{acc.description}</div>
-                  </div>
-                  <span className="text-xs px-2 py-1 bg-blue-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
-                    Enter
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 pt-1">
-            Additional researchers: claver.ndahayo@auca.edu · kelvin.onongha@auca.edu · kayigema.jacques@auca.edu · lisa.anderson@auca.edu — password: <strong>password</strong>
-          </p>
         </DialogContent>
       </Dialog>
     </div>

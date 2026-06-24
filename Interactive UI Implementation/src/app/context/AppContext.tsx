@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { api, saveToken, clearToken, saveUser, loadUser } from '../services/api';
 
 export type UserRole = 'researcher' | 'admin' | 'funder' | 'manager' | 'department_head';
 
@@ -353,10 +354,10 @@ export interface Dashboard {
 
 interface AppContextType {
   user: User | null;
-  login: (email: string, password: string) => User | null;
+  login: (email: string, password: string, mfaCode?: string) => Promise<{ mfaRequired: boolean }>;
   logout: () => void;
-  signupResearcher: (data: Record<string, unknown>) => boolean;
-  signupFunder: (data: Record<string, unknown>) => boolean;
+  signupResearcher: (data: Record<string, unknown>) => Promise<boolean>;
+  signupFunder: (data: Record<string, unknown>) => Promise<boolean>;
   researchers: User[];
   research: Research[];
   pendingResearchers: PendingResearcher[];
@@ -1114,87 +1115,142 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setChatDrawerOpen(true);
   };
 
-  const login = (email: string, password: string): User | null => {
-    const normalized = email.trim().toLowerCase();
+  // Restore session and load real data on mount
+  useEffect(() => {
+    const stored = loadUser<User>();
+    if (stored) setUser(stored);
 
-    if (normalized === 'admin@researchiq.com' && password === 'admin') {
+    // Fetch approved research from backend; fall back to mock on failure
+    api.get<Array<{
+      id: string; title: string; abstractText: string; authors: string[];
+      field: string; keywords: string[]; doi: string; publicationDate: string;
+      researcherId: string; researcherName: string; researcherDepartment: string;
+      researcherInstitution: string; fundingStatus: string;
+      fundingAmountNeeded: number | null; citationCount: number;
+      likeCount: number; shareCount: number; commentCount: number;
+      createdAt: string;
+    }>>('/research')
+      .then(items => {
+        if (items && items.length > 0) {
+          setResearch(items.map(p => ({
+            id: p.id,
+            title: p.title,
+            abstract: p.abstractText,
+            authors: p.authors || [],
+            field: p.field,
+            keywords: p.keywords || [],
+            doi: p.doi || '',
+            publicationDate: p.publicationDate || '',
+            researcherId: p.researcherId,
+            researcherName: p.researcherName,
+            researcherDepartment: p.researcherDepartment,
+            researcherInstitution: p.researcherInstitution,
+            fundingStatus: (p.fundingStatus?.toLowerCase() || 'unfunded') as Research['fundingStatus'],
+            fundingAmountNeeded: p.fundingAmountNeeded ?? undefined,
+            citations: p.citationCount || 0,
+            likes: p.likeCount || 0,
+            shares: p.shareCount || 0,
+            comments: p.commentCount || 0,
+            createdAt: p.createdAt,
+            status: 'approved' as const,
+          })));
+        }
+      })
+      .catch(() => { /* keep mock data */ });
+  }, []);
+
+  function mapRole(raw: string): UserRole {
+    const r = raw.toUpperCase();
+    if (r === 'RESEARCHER') return 'researcher';
+    if (r === 'FUNDER') return 'funder';
+    if (r === 'DEPARTMENT_HEAD') return 'department_head';
+    if (r === 'RESEARCH_MANAGER') return 'manager';
+    if (r === 'ADMIN') return 'admin';
+    return 'researcher';
+  }
+
+  const login = async (email: string, password: string, mfaCode?: string): Promise<{ mfaRequired: boolean }> => {
+    const result = await api.post<{ token: string | null; mfaRequired: boolean; user: { id: string; name: string; email: string; role: string } | null }>(
+      '/auth/login',
+      { email, password, mfaCode }
+    );
+    if (result.mfaRequired) return { mfaRequired: true };
+    if (result.token && result.user) {
+      saveToken(result.token);
       const u: User = {
-        id: 'admin1',
-        name: 'Admin User',
-        email: 'admin@researchiq.com',
-        role: 'admin',
-        institution: AUCA,
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
+        role: mapRole(result.user.role),
         verified: true,
         accredited: true,
-        joinedDate: '2022-01-01',
+        joinedDate: new Date().toISOString().slice(0, 10),
       };
+      saveUser(u);
       setUser(u);
-      return u;
+      // Load full profile in background
+      api.get<{ id: string; name: string; email: string; role: string; department?: string; position?: string; institution?: string; orcid?: string; expertiseKeywords?: string[]; profilePicture?: string; joinedDate?: string }>('/users/me')
+        .then(profile => {
+          const full: User = {
+            ...u,
+            department: profile.department,
+            position: profile.position,
+            institution: profile.institution,
+            orcid: profile.orcid,
+            expertise: profile.expertiseKeywords,
+            photo: profile.profilePicture,
+            joinedDate: profile.joinedDate ? new Date(profile.joinedDate).toISOString().slice(0, 10) : u.joinedDate,
+          };
+          saveUser(full);
+          setUser(full);
+        })
+        .catch(() => {});
     }
-
-    const found = researchers.find(r => r.email.toLowerCase() === normalized);
-    if (!found || found.disabled) {
-      return null;
-    }
-
-    const demoPw =
-      found.role === 'funder'
-        ? 'funder'
-        : ['mgr1', 'dept1'].includes(found.id)
-          ? found.role === 'manager'
-            ? 'manager'
-            : 'password'
-          : 'password';
-
-    if (password !== demoPw) {
-      return null;
-    }
-
-    setUser(found);
-    return found;
+    return { mfaRequired: false };
   };
 
-  const logout = () => setUser(null);
-
-  const signupResearcher = (data: Record<string, unknown>): boolean => {
-    const pubsRaw = String(data.publications ?? '');
-    const newPending: PendingResearcher = {
-      id: `p${Date.now()}`,
-      name: String(data.name ?? ''),
-      email: String(data.email ?? ''),
-      education: String(data.education ?? ''),
-      degree: String(data.degree ?? ''),
-      experience: parseInt(String(data.experience ?? '0'), 10) || 0,
-      institution: String(data.institution ?? ''),
-      department: String(data.department ?? ''),
-      orcid: String(data.orcid ?? ''),
-      publications: pubsRaw.split('\n').map(l => l.trim()).filter(Boolean),
-      cv: String(data.cv ?? 'uploaded_cv.pdf'),
-      status: 'pending',
-      submittedDate: new Date().toISOString().split('T')[0],
-    };
-    setPendingResearchers(prev => [...prev, newPending]);
-    return true;
+  const logout = () => {
+    clearToken();
+    setUser(null);
   };
 
-  const signupFunder = (data: Record<string, unknown>): boolean => {
-    const interestsRaw = String(data.areasOfInterest ?? '');
-    const newPending: PendingFunder = {
-      id: `pf${Date.now()}`,
-      organizationName: String(data.organizationName ?? ''),
-      email: String(data.email ?? ''),
-      contactName: String(data.contactName ?? ''),
-      contactPhone: String(data.contactPhone ?? ''),
-      areasOfInterest: interestsRaw
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
-      investmentRange: String(data.investmentRange ?? ''),
-      status: 'pending',
-      submittedDate: new Date().toISOString().split('T')[0],
-    };
-    setPendingFunders(prev => [...prev, newPending]);
-    return true;
+  const signupResearcher = async (data: Record<string, unknown>): Promise<boolean> => {
+    try {
+      const pubsRaw = String(data.publications ?? '');
+      await api.post('/auth/signup/researcher', {
+        name: String(data.name ?? ''),
+        email: String(data.email ?? ''),
+        password: String(data.password ?? ''),
+        institution: String(data.institution ?? ''),
+        department: String(data.department ?? ''),
+        orcid: String(data.orcid ?? '') || undefined,
+        degree: String(data.degree ?? '') || undefined,
+        educationSummary: String(data.education ?? '') || undefined,
+        yearsExperience: parseInt(String(data.experience ?? '0'), 10) || 0,
+        publicationsList: pubsRaw.split('\n').map((l: string) => l.trim()).filter(Boolean),
+        expertiseKeywords: [],
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const signupFunder = async (data: Record<string, unknown>): Promise<boolean> => {
+    try {
+      await api.post('/auth/signup/funder', {
+        name: String(data.contactName ?? data.organizationName ?? ''),
+        email: String(data.email ?? ''),
+        password: String(data.password ?? ''),
+        organization: String(data.organizationName ?? ''),
+        phone: String(data.contactPhone ?? '') || undefined,
+        areasOfInterest: String(data.areasOfInterest ?? '').split(',').map((s: string) => s.trim()).filter(Boolean),
+        investmentRange: String(data.investmentRange ?? '') || undefined,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const approveResearcher = (id: string) => {

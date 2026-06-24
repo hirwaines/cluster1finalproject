@@ -22,15 +22,19 @@ export function SignUpFunderPage() {
     investmentRange: '',
   });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    signupFunder(form as unknown as Record<string, unknown>);
-    toast.success('Funder application submitted for administrator review.');
-    setTimeout(() => navigate('/login'), 1800);
+    const ok = await signupFunder(form as unknown as Record<string, unknown>);
+    if (ok) {
+      toast.success('Funder application submitted for administrator review.');
+      setTimeout(() => navigate('/login'), 1800);
+    } else {
+      toast.error('Registration failed. The email may already be in use.');
+    }
   };
 
   return (

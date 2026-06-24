@@ -9,6 +9,7 @@ import { Brain, ArrowLeft, Upload, CheckCircle2, AlertCircle } from 'lucide-reac
 import { useApp } from '../context/AppContext';
 import { toast } from 'sonner';
 import { Card } from '../components/ui/card';
+import { api } from '../services/api';
 
 export function SignUpResearcherPage() {
   const navigate = useNavigate();
@@ -46,32 +47,39 @@ export function SignUpResearcherPage() {
     return { score, label: 'Strong', color: 'bg-green-500', textColor: 'text-green-600' };
   };
 
-  const sendVerificationCode = () => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setVerificationCode(code);
-    setCodeSent(true);
-    toast.success(`Verification code sent to ${formData.email} (demo code: ${code})`);
+  const sendVerificationCode = async () => {
+    if (!formData.email) { toast.error('Enter your email first'); return; }
+    try {
+      await api.post('/auth/signup/email-verification/request', { email: formData.email });
+      setCodeSent(true);
+      toast.success(`Verification code sent to ${formData.email}. Check your inbox.`);
+    } catch {
+      toast.error('Could not send verification code. Check your email address.');
+    }
   };
 
-  const verifyEmailCode = () => {
-    if (enteredCode === verificationCode) {
+  const verifyEmailCode = async () => {
+    try {
+      await api.post('/auth/signup/email-verification/verify', { email: formData.email, code: enteredCode });
       setEmailVerified(true);
       toast.success('Email verified successfully!');
-    } else {
+    } catch {
       toast.error('Invalid code. Try again.');
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) { toast.error('Passwords do not match'); return; }
     if (!emailVerified) { toast.error('Please verify your email address first'); return; }
     const strength = getPasswordStrength(formData.password);
     if (strength.score < 2) { toast.error('Password too weak. Use 8+ characters with uppercase and numbers.'); return; }
-    const ok = signupResearcher(formData as unknown as Record<string, unknown>);
+    const ok = await signupResearcher(formData as unknown as Record<string, unknown>);
     if (ok) {
       toast.success('Application submitted. An administrator will verify your record.');
       setTimeout(() => navigate('/login'), 2000);
+    } else {
+      toast.error('Registration failed. The email may already be in use.');
     }
   };
 

@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext';
 import { ResearcherLayout } from '../components/ResearcherLayout';
 import {
   CheckCircle, XCircle, Clock, DollarSign, Users, FileText,
-  MessageCircle, Send,
+  MessageCircle, Send, Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -142,7 +142,7 @@ export function RequestsPage() {
         {/* ── SENT / MY APPLICATIONS banner ── */}
         {mainTab === 'sent' && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
-            <TrendingUp className="w-5 h-5 text-blue-800 shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-blue-800 shrink-0 mt-0.5" />
             <div className="text-sm text-blue-900">
               <strong>Funding application status</strong> — this tab shows every collaboration request and funding application you have submitted. Status updates here in real time as the recipient responds.
             </div>

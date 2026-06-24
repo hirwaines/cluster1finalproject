@@ -29,6 +29,7 @@ import { ResearchKnowledgeProcessing } from "./pages/ResearchKnowledgeProcessing
 import { UserSecurityManagement } from "./pages/UserSecurityManagement";
 import { ReportBuilder } from "./pages/ReportBuilder";
 import { DashboardCustomizer } from "./pages/DashboardCustomizer";
+import { ResearchPaperPage } from "./pages/ResearchPaperPage";
 
 export const router = createBrowserRouter([
   {
@@ -61,7 +62,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/discover",
-    element: <DiscoverPage />,
+    element: <Navigate to="/feed" replace />,
+  },
+  {
+    path: "/research/:id",
+    element: <ResearchPaperPage />,
   },
   {
     path: "/requests",

@@ -183,9 +183,6 @@ export function ExpertiseMap() {
             <div className="mt-8 pt-6 border-t">
               <div className="text-xs font-semibold text-gray-500 mb-3 px-3">NAVIGATE</div>
               <div className="space-y-1">
-                <button onClick={() => navigate('/feed')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-100">
-                  <Home className="w-5 h-5" /> Back to Feed
-                </button>
                 <button onClick={() => navigate('/network')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-100">
                   <Network className="w-5 h-5" /> Collaboration Network
                 </button>

@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext';
 import { ResearcherLayout } from '../components/ResearcherLayout';
 import {
   CheckCircle, XCircle, Clock, DollarSign, Users, FileText,
-  MessageCircle, Send, TrendingUp,
+  MessageCircle, Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -91,27 +91,6 @@ export function RequestsPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Requests & Applications</h1>
           <p className="text-gray-600">Track incoming collaboration requests and your submitted funding applications</p>
-        </div>
-
-        {/* Summary stats */}
-        <div className="grid grid-cols-4 gap-6 mb-8">
-          {[
-            { label: 'Incoming', value: incoming.length, icon: Users, color: 'text-blue-800', bg: 'bg-blue-50' },
-            { label: 'Sent / Applied', value: sent.length, icon: Send, color: 'text-purple-600', bg: 'bg-purple-50' },
-            { label: 'Approved', value: countByStatus([...incoming, ...sent], 'accepted'), icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
-            { label: 'Pending', value: countByStatus([...incoming, ...sent], 'pending'), icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-          ].map(m => {
-            const Icon = m.icon;
-            return (
-              <Card key={m.label} className="p-6">
-                <div className={`w-10 h-10 ${m.bg} rounded-lg flex items-center justify-center mb-3`}>
-                  <Icon className={`w-5 h-5 ${m.color}`} />
-                </div>
-                <div className={`text-3xl font-bold ${m.color} mb-1`}>{m.value}</div>
-                <div className="text-sm text-gray-600">{m.label}</div>
-              </Card>
-            );
-          })}
         </div>
 
         {/* Main tabs */}

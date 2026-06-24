@@ -379,39 +379,6 @@ export function CollaborationNetwork() {
               )}
             </Card>
 
-            {/* Collaboration request status */}
-            <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Collaboration Request Status</h3>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                {[
-                  { label: 'Pending', count: collaborationRequests.filter(r => r.status === 'pending').length, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-                  { label: 'Accepted', count: collaborationRequests.filter(r => r.status === 'accepted').length, color: 'text-green-600', bg: 'bg-green-50' },
-                  { label: 'Rejected', count: collaborationRequests.filter(r => r.status === 'rejected').length, color: 'text-red-600', bg: 'bg-red-50' },
-                ].map(s => (
-                  <div key={s.label} className={`p-4 rounded-xl ${s.bg} text-center`}>
-                    <div className={`text-3xl font-bold ${s.color}`}>{s.count}</div>
-                    <div className="text-sm text-gray-600 mt-1">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3">
-                {collaborationRequests.slice(0, 5).map(req => (
-                  <div key={req.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium text-sm">{req.fromUserName}</div>
-                      <div className="text-xs text-gray-500">{req.researchTitle || req.fundingTitle || 'Collaboration request'}</div>
-                    </div>
-                    <Badge className={
-                      req.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                      req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }>
-                      {req.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </Card>
           </div>
         )}
       </div>

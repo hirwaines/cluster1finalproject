@@ -166,7 +166,7 @@ export function FunderDashboard() {
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'discover', label: 'Discover Research', icon: Search },
     { id: 'portfolio', label: 'My Portfolio', icon: Briefcase },
-    { id: 'rfps', label: 'RFPs', icon: FileText },
+    { id: 'rfps', label: 'Post Opportunity', icon: FilePlus },
   ] as const;
 
   return (
@@ -190,7 +190,7 @@ export function FunderDashboard() {
             </Button>
             <Button className="bg-blue-900 hover:bg-blue-950" size="sm" onClick={() => { setActiveSection('rfps'); setRfpOpen(true); }}>
               <FilePlus className="w-4 h-4 mr-2" />
-              Submit RFP
+              Post Opportunity
             </Button>
             <ChatHeaderButton unreadTotal={unreadChat} />
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
@@ -463,25 +463,25 @@ export function FunderDashboard() {
             </div>
           )}
 
-          {/* ── RFPs ── */}
+          {/* ── Post Opportunity ── */}
           {activeSection === 'rfps' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold mb-1">Funding Opportunities (RFPs)</h1>
-                  <p className="text-gray-600">Post funding opportunities for researchers to apply to.</p>
+                  <h1 className="text-3xl font-bold mb-1">Post a Funding Opportunity</h1>
+                  <p className="text-gray-600">Published opportunities appear on the researcher discover page for researchers to apply.</p>
                 </div>
                 <Button className="bg-blue-900 hover:bg-blue-950" onClick={() => setRfpOpen(true)}>
                   <FilePlus className="w-4 h-4 mr-2" />
-                  Submit new RFP
+                  Post new opportunity
                 </Button>
               </div>
               <Card className="p-12 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <div className="font-medium text-gray-500 mb-1">No RFPs posted yet</div>
-                <div className="text-sm text-gray-400 mb-4">Submit a funding opportunity for researchers to discover.</div>
+                <FilePlus className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <div className="font-medium text-gray-500 mb-1">No opportunities posted yet</div>
+                <div className="text-sm text-gray-400 mb-4">Post a funding opportunity and researchers across Rwanda will be able to discover and apply for it.</div>
                 <Button className="bg-blue-900 hover:bg-blue-950" onClick={() => setRfpOpen(true)}>
-                  Post your first RFP
+                  Post your first opportunity
                 </Button>
               </Card>
             </div>
@@ -522,7 +522,7 @@ export function FunderDashboard() {
       <Dialog open={rfpOpen} onOpenChange={setRfpOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Submit funding opportunity (RFP)</DialogTitle>
+            <DialogTitle>Post a funding opportunity</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -559,7 +559,7 @@ export function FunderDashboard() {
               </div>
             </div>
             <Button className="w-full bg-blue-900 hover:bg-blue-950" onClick={submitRfp}>
-              Post RFP
+              Publish opportunity
             </Button>
           </div>
         </DialogContent>

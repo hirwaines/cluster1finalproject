@@ -15,8 +15,7 @@ export function ResearchKnowledgeProcessing() {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      navigate('/login');
+    if (!user || user.role !== 'admin') { navigate('/admin/dashboard');
     }
   }, [user, navigate]);
 

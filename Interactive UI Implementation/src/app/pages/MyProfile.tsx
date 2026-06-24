@@ -7,14 +7,14 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
-import { FileDown, Edit, Users, TrendingUp, Award, BookOpen, Network, Calendar } from 'lucide-react';
+import { Edit, Users, TrendingUp, Award, BookOpen, Calendar, UserPlus, Heart } from 'lucide-react';
 
 export function MyProfile() {
   const navigate = useNavigate();
-  const { user, research, researchers } = useApp();
+  const { user, research } = useApp();
 
   const expertiseFreq = user ? keywordFrequencyFromPublications(user.id, research) : [];
-  const [activeTab, setActiveTab] = useState<'publications' | 'collaborators'>('publications');
+  const [activeTab, setActiveTab] = useState<'publications' | 'followers'>('publications');
 
   useEffect(() => {
     if (!user) {
@@ -27,11 +27,6 @@ export function MyProfile() {
   }
 
   const myPublications = research.filter(r => r.researcherId === user.id);
-  const myCollaborators = researchers.filter(r =>
-    research.some(pub =>
-      pub.collaborators?.includes(user.id) && pub.collaborators?.includes(r.id)
-    )
-  );
 
   return (
     <ResearcherLayout>
@@ -69,11 +64,7 @@ export function MyProfile() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline">
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Export CV
-                  </Button>
-                  <Button className="bg-blue-900 hover:bg-blue-950">
+                  <Button className="bg-blue-900 hover:bg-blue-950" onClick={() => navigate('/settings')}>
                     <Edit className="w-4 h-4 mr-2" />
                     Edit profile
                   </Button>
@@ -81,18 +72,22 @@ export function MyProfile() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <div className="text-3xl font-bold text-blue-800 mb-1">{user.publications || 0}</div>
-                  <div className="text-sm text-gray-600">PUBLICATIONS</div>
+                  <div className="text-sm text-gray-600">Publications</div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg text-center">
                   <div className="text-3xl font-bold text-green-600 mb-1">{user.citations || 0}</div>
-                  <div className="text-sm text-gray-600">CITATIONS</div>
+                  <div className="text-sm text-gray-600">Citations</div>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <div className="text-3xl font-bold text-blue-800 mb-1">{user.hIndex || 0}</div>
-                  <div className="text-sm text-gray-600">H-INDEX</div>
+                  <div className="text-sm text-gray-600">h-index</div>
+                </div>
+                <div className="bg-pink-50 p-4 rounded-lg text-center">
+                  <div className="text-3xl font-bold text-pink-600 mb-1">0</div>
+                  <div className="text-sm text-gray-600">Followers</div>
                 </div>
               </div>
             </div>
@@ -134,16 +129,16 @@ export function MyProfile() {
             </div>
           </button>
           <button
-            onClick={() => setActiveTab('collaborators')}
+            onClick={() => setActiveTab('followers')}
             className={`pb-3 px-2 font-medium transition-all ${
-              activeTab === 'collaborators'
+              activeTab === 'followers'
                 ? 'text-blue-800 border-b-2 border-blue-800'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Collaborators
+              <Heart className="w-5 h-5" />
+              Followers
             </div>
           </button>
         </div>
@@ -221,62 +216,15 @@ export function MyProfile() {
           </div>
         )}
 
-        {activeTab === 'collaborators' && (
-          <div className="grid grid-cols-3 gap-6">
-            {myCollaborators.length > 0 ? (
-              myCollaborators.map(collaborator => (
-                <Card
-                  key={collaborator.id}
-                  className="p-6 hover:shadow-lg transition-all cursor-pointer"
-                  onClick={() => navigate(`/researcher/profile/${collaborator.id}`)}
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <Avatar className="w-20 h-20 bg-blue-800 flex items-center justify-center text-white font-bold text-2xl mb-3">
-                      {collaborator.name.charAt(0)}
-                    </Avatar>
-
-                    <h3 className="font-bold mb-1">{collaborator.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{collaborator.department}</p>
-
-                    <div className="flex flex-wrap gap-1.5 justify-center mb-3">
-                      {collaborator.expertise?.slice(0, 2).map(exp => (
-                        <Badge key={exp} variant="secondary" className="text-xs">
-                          {exp}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3 w-full text-center text-xs">
-                      <div>
-                        <div className="font-bold text-blue-800">{collaborator.publications}</div>
-                        <div className="text-gray-500">Pubs</div>
-                      </div>
-                      <div>
-                        <div className="font-bold text-green-600">{collaborator.citations}</div>
-                        <div className="text-gray-500">Cites</div>
-                      </div>
-                      <div>
-                        <div className="font-bold text-blue-800">{collaborator.hIndex}</div>
-                        <div className="text-gray-500">h-index</div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-3 p-12 text-center">
-                <Network className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">No collaborators yet</h3>
-                <p className="text-gray-600 mb-4">Start collaborating with other researchers</p>
-                <Button
-                  className="bg-blue-900 hover:bg-blue-950"
-                  onClick={() => navigate('/collaborators')}
-                >
-                  Find collaborators
-                </Button>
-              </Card>
-            )}
-          </div>
+        {activeTab === 'followers' && (
+          <Card className="p-12 text-center border-2 border-dashed border-gray-200">
+            <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold mb-2 text-gray-600">No followers yet</h3>
+            <p className="text-gray-500 text-sm">Share your research to gain followers from the community.</p>
+            <Button className="mt-4 bg-blue-900 hover:bg-blue-950" onClick={() => navigate('/researcher/upload')}>
+              Share research
+            </Button>
+          </Card>
         )}
       </div>
     </ResearcherLayout>

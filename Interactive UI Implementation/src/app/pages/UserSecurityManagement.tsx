@@ -36,8 +36,7 @@ export function UserSecurityManagement() {
   const [showSecurityDialog, setShowSecurityDialog] = useState(false);
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      navigate('/login');
+    if (!user || user.role !== 'admin') { navigate('/admin/dashboard');
     }
   }, [user, navigate]);
 

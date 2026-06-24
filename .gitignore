@@ -1,0 +1,24 @@
+# Node
+node_modules/
+dist/
+.cache/
+*.local
+
+# Vite
+vite-ui.out.log
+vite-ui.err.log
+
+# Java / Maven
+research-iq-backend/target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

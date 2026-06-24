@@ -1,0 +1,27 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  profiles:
+    active: dev
+  application:
+    name: researchiq
+
+app:
+  security:
+    jwt:
+      secretKey: ${JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      expirationMs: 3600000 # 1 hour
+      refreshExpirationMs: 86400000 # 24 hours
+      issuer: "researchiq"
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    name: ${BOOTSTRAP_ADMIN_NAME:System Admin}
+  ratelimit:
+    requestsPerMinute: 60
+
+ai:
+  expertise-mapping-url: ${AI_EXPERTISE_URL:http://localhost:8001}
+  collaboration-url: ${AI_COLLABORATION_URL:http://localhost:8002}
+  trend-analysis-url: ${AI_TREND_URL:http://localhost:8003}
+  funding-alignment-url: ${AI_FUNDING_URL:http://localhost:8004}

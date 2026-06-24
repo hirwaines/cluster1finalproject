@@ -1,0 +1,144 @@
+================================================================================
+RESEARCHIQ - WINDOWS COMMAND REFERENCE
+================================================================================
+
+IMPORTANT: Windows uses BACKSLASH (\) NOT forward slash (/)
+           and requires .bat extension for batch files
+
+================================================================================
+CORRECT WINDOWS COMMANDS
+================================================================================
+
+1. START AI SERVICES (Terminal 1)
+   ─────────────────────────────────
+   cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+   START_ALL_SERVICES.bat
+
+   Wait 30 seconds for all services to start.
+
+
+2. START BACKEND (Terminal 2)
+   ─────────────────────────────
+   cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend
+   .\gradlew.bat bootRun
+
+   Wait for message: "Started ResearchiqApplication in X seconds"
+
+
+3. VERIFY EVERYTHING IS RUNNING
+   ────────────────────────────────
+   curl http://localhost:8080/actuator/health
+   curl http://localhost:8001/health
+
+   Both should respond with: {"status":"UP"}
+
+
+4. CLEAN BUILD (if needed)
+   ───────────────────────
+   .\gradlew.bat clean build -x test
+
+
+5. ACCESS APPLICATION
+   ──────────────────
+   Browser: http://localhost:8080/swagger-ui.html
+
+================================================================================
+COMMON MISTAKES & CORRECTIONS
+================================================================================
+
+
+RIGHT:  .\gradlew.bat bootRun
+
+
+RIGHT:  START_ALL_SERVICES.bat
+
+RIGHT:  cd .\Ai_task
+
+WRONG:  /gradlew clean
+RIGHT:  .\gradlew.bat clean
+
+================================================================================
+WINDOWS-SPECIFIC SYNTAX
+================================================================================
+
+Path Separator:
+  Windows:  \ (backslash)
+  Example:  c:\Users\user\Documents\folder\file.txt
+
+Script Files:
+  Windows:  script.bat (or .cmd)
+  Example:  .\gradlew.bat clean build
+
+Navigation:
+  Windows:  .\folder\  (backslash, with dot for current directory)
+  Example:  cd .\Ai_task
+
+Commands:
+  Windows:  .\command.bat argument
+  Example:  .\gradlew.bat bootRun
+
+================================================================================
+STOPPING SERVICES
+================================================================================
+
+To Stop Backend:
+  Press Ctrl+C in the terminal running backend
+
+To Stop AI Services:
+  Close all the individual command windows (10 windows total)
+  Or press Ctrl+C in each window
+
+To Kill Process on Port 8080:
+  netstat -ano | findstr :8080
+  taskkill /PID <PID> /F
+
+================================================================================
+HELPFUL WINDOWS POWERSHELL TIPS
+================================================================================
+
+Check if port is in use:
+  netstat -ano | findstr :8080
+
+Kill process by port:
+  taskkill /PID <PID> /F
+
+Change directory:
+  cd c:\path\to\directory
+
+List files:
+  dir
+
+Clear screen:
+  cls
+
+View file content:
+  type filename.txt
+
+Test connection:
+  curl http://localhost:8080/actuator/health
+
+================================================================================
+FULL STARTUP SEQUENCE FOR WINDOWS
+================================================================================
+
+1. Open PowerShell/Command Prompt as Administrator
+
+2. Terminal 1:
+   cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+   START_ALL_SERVICES.bat
+   [Wait 30 seconds]
+
+3. Open NEW Terminal 2:
+   cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend
+   .\gradlew.bat bootRun
+   [Wait until you see: "Started ResearchiqApplication"]
+
+4. Test in Terminal 3 (or new PowerShell window):
+   curl http://localhost:8080/actuator/health
+
+5. Access in Browser:
+   http://localhost:8080/swagger-ui.html
+
+================================================================================
+REMEMBER: Windows-specific syntax is required!
+============================================================ ================

@@ -1,0 +1,244 @@
+================================================================================
+                     RESEARCHIQ - QUICK RUN GUIDE
+================================================================================
+
+PREREQUISITES (Install Once)
+================================================================================
+
+1. Java 21 LTS
+   Download: https://www.oracle.com/java/technologies/downloads/#java21
+   Verify: java -version
+
+2. Python 3.8+
+   Download: https://www.python.org/downloads/
+   Verify: python --version
+
+3. PostgreSQL 14+
+   Download: https://www.postgresql.org/download/
+   Verify: psql --version
+
+
+INSTALL PYTHON DEPENDENCIES 
+================================================================================
+
+
+pip install fastapi==0.111.0
+pip install uvicorn==0.29.0
+pip install pydantic==2.7.1
+
+
+STARTUP SEQUENCE
+================================================================================
+
+FASTEST WAY (Recommended):
+--------------------------
+
+Terminal 1 - AI Services 
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  START_ALL_SERVICES.bat
+
+Terminal 2 - Backend
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend
+  .\gradlew.bat bootRun
+
+
+MANUAL WAY (If batch doesn't work):
+-----------------------------------
+
+Run each in separate terminal:
+
+Terminal 1:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn researcher.expertise_mapping.main:app --port 8001
+
+Terminal 2:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn researcher.collaboration_recommendation.main:app --port 8002
+
+Terminal 3:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn researcher.trend_analysis.main:app --port 8003
+
+Terminal 4:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn researcher.funding_alignment.main:app --port 8004
+
+Terminal 5:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn researcher.knowledge_processing.main:app --port 8005
+
+Terminal 6:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn researcher.network_analysis.main:app --port 8006
+
+Terminal 7:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn research_manager.department_analytics.main:app --port 8007
+
+Terminal 8:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn research_manager.research_portfolio.main:app --port 8008
+
+Terminal 9:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn department_head.faculty_intelligence.main:app --port 8009
+
+Terminal 10:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -m uvicorn admin.knowledge_pipeline.main:app --port 8010
+
+Terminal 11:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend
+  ./gradlew bootRun
+
+
+VERIFY EVERYTHING IS RUNNING
+================================================================================
+
+Check AI Services:
+  curl http://localhost:8001/health
+  curl http://localhost:8002/health
+  curl http://localhost:8003/health
+  curl http://localhost:8004/health
+  curl http://localhost:8005/health
+  curl http://localhost:8006/health
+  curl http://localhost:8007/health
+  curl http://localhost:8008/health
+  curl http://localhost:8009/health
+  curl http://localhost:8010/health
+
+Check Backend:
+  curl http://localhost:8080/actuator/health
+
+All should return: {"status":"ok",...}
+
+
+ACCESS POINTS
+================================================================================
+
+Backend Swagger UI:
+  http://localhost:8080/swagger-ui.html
+
+AI Service Docs:
+  http://localhost:8001/docs  (Expertise Mapping)
+  http://localhost:8002/docs  (Collaboration)
+  http://localhost:8003/docs  (Trends)
+  http://localhost:8004/docs  (Funding)
+  http://localhost:8005/docs  (Knowledge Processing)
+  http://localhost:8006/docs  (Network Analysis)
+  http://localhost:8007/docs  (Department Analytics)
+  http://localhost:8008/docs  (Research Portfolio)
+  http://localhost:8009/docs  (Faculty Intelligence)
+  http://localhost:8010/docs  (Knowledge Pipeline)
+
+
+PORTS REFERENCE
+================================================================================
+
+8001 - Expertise Mapping Service
+8002 - Collaboration Recommendation Service
+8003 - Research Trend Analysis Service
+8004 - Funding Alignment Service
+8005 - Knowledge Processing Service
+8006 - Network Analysis Service
+8007 - Department Analytics Service
+8008 - Research Portfolio Service
+8009 - Faculty Intelligence Service
+8010 - Knowledge Pipeline Service
+8080 - Spring Boot Backend
+5432 - PostgreSQL Database
+
+
+REQUIRED PACKAGES CHECKLIST
+================================================================================
+
+Java:
+  ✓ Java 21 LTS
+  ✓ Gradle (included in project)
+
+Python:
+  ✓ Python 3.8+
+  ✓ fastapi==0.111.0
+  ✓ uvicorn==0.29.0
+  ✓ pydantic==2.7.1
+
+Database:
+  ✓ PostgreSQL 14+
+  ✓ researchiq database created
+
+Backend Dependencies (Auto via Gradle):
+  ✓ Spring Boot 4.0.5
+  ✓ Spring Security (JWT)
+  ✓ Spring Data JPA
+  ✓ PostgreSQL JDBC Driver
+  ✓ Flyway (Migrations)
+  ✓ Resilience4j (Circuit Breaker)
+  ✓ OpenAPI/Swagger
+  ✓ Micrometer (Metrics)
+
+
+TROUBLESHOOTING
+================================================================================
+
+Port Already in Use:
+  netstat -ano | findstr :8001
+  taskkill /PID <PID> /F
+
+Python Module Not Found:
+  cd c:\Users\user\Documents\Auca\Inoovation\ResearchIQ\research-iq-backend\Ai_task
+  python -c "import researcher.expertise_mapping.main"
+
+Database Connection Error:
+  psql -U researchiq_user -d researchiq -h localhost
+
+Backend Won't Build:
+  .\gradlew.bat clean build -x test
+
+Stop Everything:
+  pkill -f "python -m uvicorn"
+  (Ctrl+C in backend terminal)
+
+
+EXPECTED OUTPUT
+================================================================================
+
+AI Services Should Show:
+  INFO:     Uvicorn running on http://0.0.0.0:8001
+  INFO:     Application startup complete
+
+Backend Should Show:
+  Started ResearchIQ in X seconds
+
+
+NEXT STEPS
+================================================================================
+
+1. Register user:
+   POST http://localhost:8080/api/v1/auth/register
+
+2. Login:
+   POST http://localhost:8080/api/v1/auth/login
+
+3. Test AI endpoints:
+   GET http://localhost:8080/api/v1/ai/expertise/profile/RWR001
+
+4. Connect frontend:
+   Update React .env to http://localhost:8080
+
+
+QUICK REFERENCE
+================================================================================
+
+Start Everything:
+  Terminal 1: cd Ai_task && START_ALL_SERVICES.bat
+  Terminal 2: ./gradlew bootRun
+
+Stop Everything:
+  Ctrl+C in both terminals
+
+Check Health:
+  curl http://localhost:8080/actuator/health
+
+View API Docs:
+  http://localhost:8080/swagger-ui.html
+

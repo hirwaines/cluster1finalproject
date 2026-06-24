@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.umojatech.researchiq: DEBUG
+
+app:
+  security:
+    jwt:
+      secretKey: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+      expirationMs: 60000     # 1 minute
+      refreshExpirationMs: 120000 # 2 minutes
+      issuer: "researchiq-test"

@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/researchiq}
+    username: ${DB_USERNAME:researchiq_user}
+    password: ${DB_PASSWORD:researchiq_password}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    validate-on-migrate: false
+    clean-disabled: true
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/researchiq}
+    user: ${DB_USERNAME:researchiq_user}
+    password: ${DB_PASSWORD:researchiq_password}
+
+logging:
+  level:
+    root: INFO
+    com.umojatech.researchiq: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+
+app:
+  security:
+    jwt:
+      secretKey: ${JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      expirationMs: ${JWT_EXPIRATION_MS:3600000}
+      refreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:86400000}
+      issuer: "researchiq-dev"

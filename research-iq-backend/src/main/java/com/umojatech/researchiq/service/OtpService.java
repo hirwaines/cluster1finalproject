@@ -1,6 +1,7 @@
 package com.umojatech.researchiq.service;
 
 import com.umojatech.researchiq.exception.BusinessException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -11,18 +12,22 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class OtpService {
 
     private static final Logger log = LoggerFactory.getLogger(OtpService.class);
     private static final long TTL_SECONDS = 10L * 60;
 
+    private final EmailService emailService;
     private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, OtpRecord> emailVerificationOtps = new ConcurrentHashMap<>();
     private final Map<String, OtpRecord> adminMfaOtps = new ConcurrentHashMap<>();
     private final Map<String, OtpRecord> passwordResetOtps = new ConcurrentHashMap<>();
 
     public String sendEmailVerificationCode(String email) {
-        return issue(emailVerificationOtps, email, "email verification");
+        String code = issue(emailVerificationOtps, email, "email verification");
+        emailService.sendOtp(email, "ResearchIQ – Verify your email", code, "email verification");
+        return code;
     }
 
     public boolean verifyEmailCode(String email, String otp) {
@@ -39,7 +44,9 @@ public class OtpService {
     }
 
     public String sendAdminMfaCode(String email) {
-        return issue(adminMfaOtps, email, "admin MFA");
+        String code = issue(adminMfaOtps, email, "admin MFA");
+        emailService.sendOtp(email, "ResearchIQ – Admin login code", code, "admin two-factor authentication");
+        return code;
     }
 
     public boolean verifyAdminMfaCode(String email, String otp) {
@@ -51,7 +58,9 @@ public class OtpService {
     }
 
     public String sendPasswordResetCode(String email) {
-        return issue(passwordResetOtps, email, "password reset");
+        String code = issue(passwordResetOtps, email, "password reset");
+        emailService.sendOtp(email, "ResearchIQ – Password reset code", code, "password reset");
+        return code;
     }
 
     public boolean verifyPasswordResetCode(String email, String otp) {
@@ -66,7 +75,7 @@ public class OtpService {
         String normalizedEmail = normalize(email);
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));
         store.put(normalizedEmail, new OtpRecord(code, Instant.now().getEpochSecond() + TTL_SECONDS, false));
-        log.info("{} OTP for {}: {}", purpose, normalizedEmail, code);
+        log.info("{} OTP for {} (console fallback): {}", purpose, normalizedEmail, code);
         return code;
     }
 

@@ -60,7 +60,7 @@ export function SignUpResearcherPage() {
 
   const verifyEmailCode = async () => {
     try {
-      await api.post('/auth/signup/email-verification/verify', { email: formData.email, code: enteredCode });
+      await api.post('/auth/signup/email-verification/verify', { email: formData.email, otp: enteredCode });
       setEmailVerified(true);
       toast.success('Email verified successfully!');
     } catch {

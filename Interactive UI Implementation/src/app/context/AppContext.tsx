@@ -1164,7 +1164,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (r === 'RESEARCHER') return 'researcher';
     if (r === 'FUNDER') return 'funder';
     if (r === 'DEPARTMENT_HEAD') return 'department_head';
-    if (r === 'RESEARCH_MANAGER') return 'manager';
+    if (r === 'MANAGER' || r === 'RESEARCH_MANAGER') return 'manager';
     if (r === 'ADMIN') return 'admin';
     return 'researcher';
   }

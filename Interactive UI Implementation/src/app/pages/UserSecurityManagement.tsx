@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -6,8 +6,9 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Checkbox } from '../components/ui/checkbox';
+import { DashboardPageHeader, tabClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
-import { Brain, ArrowLeft, Shield, Users, Lock, LogOut, Trash2, Eye, EyeOff } from 'lucide-react';
+import { LogOut, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 type TabType = 'users' | 'permissions' | 'audit' | 'sessions' | 'security';
@@ -83,42 +84,24 @@ export function UserSecurityManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white/80 backdrop-blur-md border-b border-blue-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl">Security & Users</span>
-          </div>
-          <Button variant="ghost" onClick={() => navigate('/admin/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Admin
-          </Button>
-        </div>
-      </nav>
+    <>
+      <DashboardPageHeader
+        title="User & Security Management"
+        description="Manage users, permissions, audit logs, and security settings"
+      />
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-4xl font-bold mb-2">User & Security Management</h1>
-        <p className="text-gray-600 mb-8">Manage users, permissions, audit logs, and security settings</p>
-
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8 overflow-x-auto">
-          {(['users', 'permissions', 'audit', 'sessions', 'security'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                activeTab === tab
-                  ? 'border-b-2 border-blue-800 text-blue-800'
-                  : 'border-b-2 border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
+        {(['users', 'permissions', 'audit', 'sessions', 'security'] as const).map(tab => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={tabClass(activeTab === tab)}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
 
         {/* USERS TAB */}
         {activeTab === 'users' && (
@@ -139,15 +122,15 @@ export function UserSecurityManagement() {
                       onClick={() => setSelectedUserId(researcher.id)}
                       className={`p-3 cursor-pointer transition-all ${
                         selectedUserId === researcher.id
-                          ? 'border-2 border-blue-800 bg-blue-50'
+                          ? 'border-2 border-brand bg-brand-muted'
                           : 'hover:shadow-md'
                       }`}
                     >
                       <div className="font-medium text-sm line-clamp-1">{researcher.name}</div>
-                      <div className="text-xs text-gray-500 line-clamp-1">{researcher.email}</div>
+                      <div className="text-xs text-muted-foreground line-clamp-1">{researcher.email}</div>
                       <div className="flex items-center gap-2 mt-2">
                         <Badge className="text-xs">{researcher.role}</Badge>
-                        {researcher.disabled && <Badge className="text-xs bg-red-100 text-red-800">Disabled</Badge>}
+                        {researcher.disabled && <Badge className="text-xs bg-destructive/10 text-destructive">Disabled</Badge>}
                       </div>
                     </Card>
                   ))}
@@ -161,30 +144,30 @@ export function UserSecurityManagement() {
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold mb-2">{selectedUser.name}</h2>
-                      <p className="text-gray-600">{selectedUser.email}</p>
+                      <p className="text-muted-foreground">{selectedUser.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge>{selectedUser.role}</Badge>
-                      {selectedUser.disabled && <Badge className="bg-red-100 text-red-800">Disabled</Badge>}
+                      {selectedUser.disabled && <Badge className="bg-destructive/10 text-destructive">Disabled</Badge>}
                     </div>
                   </div>
 
                   {/* User Details */}
                   <div className="grid grid-cols-2 gap-6 mb-8 pb-8 border-b">
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Institution</div>
+                      <div className="text-sm font-medium text-muted-foreground">Institution</div>
                       <div className="text-lg">{selectedUser.institution || 'N/A'}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Department</div>
+                      <div className="text-sm font-medium text-muted-foreground">Department</div>
                       <div className="text-lg">{selectedUser.department || 'N/A'}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Joined</div>
+                      <div className="text-sm font-medium text-muted-foreground">Joined</div>
                       <div className="text-lg">{selectedUser.joinedDate || 'N/A'}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Status</div>
+                      <div className="text-sm font-medium text-muted-foreground">Status</div>
                       <div className="text-lg">{selectedUser.disabled ? 'Disabled' : 'Active'}</div>
                     </div>
                   </div>
@@ -210,17 +193,17 @@ export function UserSecurityManagement() {
                     {userSessionsForSelected.length > 0 ? (
                       <div className="space-y-3">
                         {userSessionsForSelected.map(session => (
-                          <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                          <div key={session.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
                             <div className="text-sm">
                               <div className="font-medium">Session {session.id.slice(-8)}</div>
-                              <div className="text-gray-600">
+                              <div className="text-muted-foreground">
                                 {new Date(session.loginTime).toLocaleString()}
                               </div>
                             </div>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-red-600"
+                              className="text-destructive"
                               onClick={() => terminateUserSession(session.id)}
                             >
                               <LogOut className="w-4 h-4" />
@@ -229,7 +212,7 @@ export function UserSecurityManagement() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500">No active sessions</p>
+                      <p className="text-muted-foreground">No active sessions</p>
                     )}
                   </div>
 
@@ -237,7 +220,7 @@ export function UserSecurityManagement() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => setShowPermissionsDialog(true)}
-                      className="flex-1 bg-blue-800 hover:bg-blue-900"
+                      className="flex-1 bg-brand hover:bg-brand/90"
                     >
                       View Permissions
                     </Button>
@@ -254,7 +237,7 @@ export function UserSecurityManagement() {
                         setSelectedUserId(null);
                       }}
                       variant="outline"
-                      className="flex-1 text-red-600 hover:text-red-700"
+                      className="flex-1 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete
@@ -263,7 +246,7 @@ export function UserSecurityManagement() {
                 </Card>
               ) : (
                 <Card className="p-8 flex items-center justify-center min-h-96">
-                  <p className="text-gray-500">Select a user to view details</p>
+                  <p className="text-muted-foreground">Select a user to view details</p>
                 </Card>
               )}
             </div>
@@ -277,7 +260,7 @@ export function UserSecurityManagement() {
               <Card key={perm.id} className="p-6">
                 <div className="mb-4">
                   <h3 className="font-bold text-lg">{perm.roleId.toUpperCase()}</h3>
-                  <p className="text-gray-600">Resource: {perm.resource}</p>
+                  <p className="text-muted-foreground">Resource: {perm.resource}</p>
                 </div>
                 <div className="grid grid-cols-5 gap-4">
                   {['create', 'read', 'update', 'delete', 'approve', 'admin'].map(action => (
@@ -300,12 +283,12 @@ export function UserSecurityManagement() {
                 <div key={log.id} className="flex items-start justify-between p-4 border-b">
                   <div>
                     <div className="font-medium">{log.action}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-muted-foreground">
                       {log.userName} on {log.resource} ({log.resourceId})
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">{log.timestamp}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{log.timestamp}</div>
                   </div>
-                  <Badge className={log.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                  <Badge className={log.status === 'success' ? 'bg-success-muted text-success-foreground' : 'bg-destructive/10 text-destructive'}>
                     {log.status}
                   </Badge>
                 </div>
@@ -327,15 +310,15 @@ export function UserSecurityManagement() {
                     <div key={session.id} className="flex items-center justify-between p-4 border rounded">
                       <div>
                         <div className="font-medium">{sessionUser?.name || 'Unknown'}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-muted-foreground">
                           Login: {new Date(session.loginTime).toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-500">Last: {session.lastActivity}</div>
+                        <div className="text-xs text-muted-foreground">Last: {session.lastActivity}</div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600"
+                        className="text-destructive"
                         onClick={() => terminateUserSession(session.id)}
                       >
                         Terminate
@@ -388,13 +371,12 @@ export function UserSecurityManagement() {
                 </Label>
               </div>
 
-              <Button className="w-full bg-blue-800 hover:bg-blue-900">
+              <Button className="w-full bg-brand hover:bg-brand/90">
                 Update Security Settings
               </Button>
             </div>
           </Card>
         )}
-      </div>
 
       {/* Permissions Dialog */}
       {showPermissionsDialog && selectedUser && (
@@ -418,6 +400,6 @@ export function UserSecurityManagement() {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </>
   );
 }

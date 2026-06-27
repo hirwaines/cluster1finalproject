@@ -37,11 +37,58 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(buildHtml(purpose, code), true);
             mailSender.send(msg);
-            log.info("OTP email sent to {} for {}", to, purpose);
+            log.info("OTP email sent to {} for {} — code: {}", to, purpose, code);
         } catch (MessagingException e) {
             log.error("Failed to send OTP email to {}: {}", to, e.getMessage());
             log.info("[FALLBACK] {} code for {}: {}", purpose, to, code);
         }
+    }
+
+    @Async
+    public void sendContactInquiry(
+            String adminEmail,
+            String fromName,
+            String fromEmail,
+            String subject,
+            String message) {
+        if (fromAddress == null || fromAddress.isBlank()) {
+            log.info(
+                    "[CONTACT – mail not configured] To admin: {} | From: {} <{}> | Subject: {} | Message: {}",
+                    adminEmail, fromName, fromEmail, subject, message);
+            return;
+        }
+        try {
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(adminEmail);
+            helper.setReplyTo(fromEmail);
+            helper.setSubject("[ResearchIQ Contact] " + subject);
+            helper.setText(buildContactHtml(fromName, fromEmail, subject, message), true);
+            mailSender.send(msg);
+            log.info("Contact message sent to admin {} from {} <{}>", adminEmail, fromName, fromEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send contact email to {}: {}", adminEmail, e.getMessage());
+            log.info(
+                    "[CONTACT FALLBACK] To admin: {} | From: {} <{}> | Subject: {} | Message: {}",
+                    adminEmail, fromName, fromEmail, subject, message);
+        }
+    }
+
+    private String buildContactHtml(String fromName, String fromEmail, String subject, String message) {
+        String safeMessage = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\n", "<br/>");
+        return """
+                <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px">
+                  <h2 style="color:#0c2340;margin-top:0">New ResearchIQ contact message</h2>
+                  <p style="color:#475569"><strong>From:</strong> %s &lt;%s&gt;</p>
+                  <p style="color:#475569"><strong>Subject:</strong> %s</p>
+                  <div style="background:#f4f8fc;border:1px solid #cbd5e1;border-radius:8px;padding:16px;margin-top:16px">
+                    <p style="color:#0c2340;margin:0;line-height:1.6">%s</p>
+                  </div>
+                  <p style="color:#94a3b8;font-size:12px;margin-top:24px">Reply directly to this email to respond to the sender.</p>
+                </div>
+                """.formatted(fromName, fromEmail, subject, safeMessage);
     }
 
     private String buildHtml(String purpose, String code) {

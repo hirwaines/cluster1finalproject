@@ -1,6 +1,5 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ResearcherLayout } from '../components/ResearcherLayout';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -84,11 +83,10 @@ export function UploadResearch() {
   };
 
   return (
-    <ResearcherLayout>
       <div className="p-8 max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Submit publication</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Your submission enters an administrator queue. After approval it is indexed for collaborator matching, expertise summaries, and discovery feeds.
           </p>
         </div>
@@ -115,7 +113,7 @@ export function UploadResearch() {
             <Label className="mb-4 block">Cover image or PDF</Label>
             <div className="relative">
               {imagePreview ? (
-                <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden">
+                <div className="relative h-96 bg-muted rounded-lg overflow-hidden">
                   <img
                     src={imagePreview}
                     alt="Cover preview"
@@ -128,17 +126,17 @@ export function UploadResearch() {
                       setImagePreview('');
                       setFormData(prev => ({ ...prev, coverImage: '' }));
                     }}
-                    className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
+                    className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-muted"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-96 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
+                <label className="flex flex-col items-center justify-center w-full h-96 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-brand hover:bg-brand-muted transition-all">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <ImagePlus className="w-16 h-16 text-gray-400 mb-4" />
-                    <p className="mb-2 text-lg font-medium text-gray-700">Drop cover image or PDF</p>
-                    <p className="text-sm text-gray-500">PNG, JPG, PDF up to 50MB</p>
+                    <ImagePlus className="w-16 h-16 text-muted-foreground/70 mb-4" />
+                    <p className="mb-2 text-lg font-medium text-foreground">Drop cover image or PDF</p>
+                    <p className="text-sm text-muted-foreground">PNG, JPG, PDF up to 50MB</p>
                   </div>
                   <input
                     type="file"
@@ -231,7 +229,7 @@ export function UploadResearch() {
 
             <div>
               <Label htmlFor="keywords">Indexing hints (optional)</Label>
-              <p className="text-xs text-gray-500 mt-1 mb-2">
+              <p className="text-xs text-muted-foreground mt-1 mb-2">
                 Primary keywords are generated from the approved title and abstract (and merged with any hints). Leave blank if unsure.
               </p>
               <div className="flex gap-2 mt-2 mb-3">
@@ -249,12 +247,12 @@ export function UploadResearch() {
               {formData.keywords.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {formData.keywords.map(keyword => (
-                    <Badge key={keyword} className="gap-2 bg-blue-100 text-blue-900">
+                    <Badge key={keyword} className="gap-2 bg-brand-muted text-brand">
                       {keyword}
                       <button
                         type="button"
                         onClick={() => removeKeyword(keyword)}
-                        className="hover:text-red-600"
+                        className="hover:text-destructive"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -265,10 +263,10 @@ export function UploadResearch() {
             </div>
           </Card>
 
-          <Card className="p-5 border border-blue-100 bg-blue-50/60 flex gap-3">
-            <Info className="w-5 h-5 text-blue-900 shrink-0 mt-0.5" />
-            <div className="text-sm text-gray-800">
-              <p className="font-semibold text-gray-900 mb-1">How recommendations use your work</p>
+          <Card className="p-5 border border-border bg-brand-muted/60 flex gap-3">
+            <Info className="w-5 h-5 text-brand shrink-0 mt-0.5" />
+            <div className="text-sm text-foreground">
+              <p className="font-semibold text-foreground mb-1">How recommendations use your work</p>
               <p>
                 Collaborator suggestions and profile keyword frequencies read only from <strong>approved</strong> publications in the catalogue.
                 Administrators may also bulk-import verified metadata via CSV (those records skip this queue).
@@ -286,12 +284,11 @@ export function UploadResearch() {
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-blue-900 hover:bg-blue-950">
+            <Button type="submit" className="flex-1 ">
               Submit for approval
             </Button>
           </div>
         </form>
       </div>
-    </ResearcherLayout>
   );
 }

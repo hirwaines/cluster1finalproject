@@ -9,8 +9,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 @RequiredArgsConstructor
 public class BootstrapAdminInitializer implements CommandLineRunner {
@@ -21,21 +19,18 @@ public class BootstrapAdminInitializer implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
-    if (bootstrapAdminProperties.getEmail() == null || bootstrapAdminProperties.getPassword() == null) {
+    if (bootstrapAdminProperties.getEmail() == null || bootstrapAdminProperties.getEmail().isBlank()
+        || bootstrapAdminProperties.getPassword() == null || bootstrapAdminProperties.getPassword().isBlank()) {
       return;
     }
 
-      if (userRepository.existsByRole(UserRole.ADMIN)) {
-      return;
-    }
-
-      Optional<User> existingUser = userRepository.findByEmail(bootstrapAdminProperties.getEmail());
-      User admin = existingUser.orElseGet(User::new);
-      admin.setName(bootstrapAdminProperties.getName() != null ? bootstrapAdminProperties.getName() : "System Admin");
-      admin.setEmail(bootstrapAdminProperties.getEmail());
-      admin.setPassword(passwordEncoder.encode(bootstrapAdminProperties.getPassword()));
-      admin.setRole(UserRole.ADMIN);
-      admin.setStatus(UserStatus.ACTIVE);
-      userRepository.save(admin);
+    String email = bootstrapAdminProperties.getEmail().trim();
+    User admin = userRepository.findByEmail(email).orElseGet(User::new);
+    admin.setName(bootstrapAdminProperties.getName() != null ? bootstrapAdminProperties.getName() : "System Admin");
+    admin.setEmail(email);
+    admin.setPassword(passwordEncoder.encode(bootstrapAdminProperties.getPassword()));
+    admin.setRole(UserRole.ADMIN);
+    admin.setStatus(UserStatus.ACTIVE);
+    userRepository.save(admin);
   }
 }

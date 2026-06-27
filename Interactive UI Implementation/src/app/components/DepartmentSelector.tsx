@@ -24,7 +24,7 @@ export function DepartmentSelector({
 
   return (
     <div className="flex items-center gap-2">
-      <Building2 className="w-5 h-5 text-gray-500" />
+      <Building2 className="w-5 h-5 text-muted-foreground" />
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-64">
           <SelectValue placeholder={`Select ${label}`} />

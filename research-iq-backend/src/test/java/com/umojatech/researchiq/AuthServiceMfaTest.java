@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -62,47 +61,32 @@ class AuthServiceMfaTest {
     }
 
     @Test
-    void nonAdminGetsTokenImmediately() {
-        AuthResponse res = authService.login(login(RESEARCHER_EMAIL, null));
+    void allUsersRequireMfaOnFirstLoginCall() {
+        AuthResponse adminRes = authService.login(login(ADMIN_EMAIL, null));
+        assertEquals(Boolean.TRUE, adminRes.getMfaRequired());
+        assertNull(adminRes.getToken());
 
-        assertNotNull(res.getToken(), "non-admin should receive a token on first call");
+        AuthResponse researcherRes = authService.login(login(RESEARCHER_EMAIL, null));
+        assertEquals(Boolean.TRUE, researcherRes.getMfaRequired());
+        assertNull(researcherRes.getToken());
+    }
+
+    @Test
+    void userWithValidCodeGetsTokenAndCodeIsSingleUse() {
+        String code = otpService.sendLoginMfaCode(RESEARCHER_EMAIL);
+
+        AuthResponse res = authService.login(login(RESEARCHER_EMAIL, code));
+        assertNotNull(res.getToken());
         assertEquals(Boolean.FALSE, res.getMfaRequired());
         assertNotNull(res.getUser());
+        assertEquals(RESEARCHER_EMAIL, res.getUser().getEmail());
+
+        assertThrows(BusinessException.class, () -> authService.login(login(RESEARCHER_EMAIL, code)));
     }
 
     @Test
-    void adminWithoutCodeGetsMfaChallengeNotAnError() {
-        // The critical fix: this must be a normal response the client can read,
-        // distinct from a 401 bad-credentials error.
-        AuthResponse res = authService.login(login(ADMIN_EMAIL, null));
-
-        assertEquals(Boolean.TRUE, res.getMfaRequired(), "admin first call must signal mfaRequired");
-        assertNull(res.getToken(), "no token until the code is supplied");
-        assertNull(res.getUser());
-    }
-
-    @Test
-    void adminWithValidCodeGetsTokenAndCodeIsSingleUse() {
-        // Seed a known code the way the login flow would, then complete the second step.
-        String code = otpService.sendAdminMfaCode(ADMIN_EMAIL);
-
-        AuthResponse res = authService.login(login(ADMIN_EMAIL, code));
-        assertNotNull(res.getToken(), "valid code should yield a token");
-        assertEquals(Boolean.FALSE, res.getMfaRequired());
-        assertNotNull(res.getUser());
-        assertEquals(ADMIN_EMAIL, res.getUser().getEmail());
-
-        // Reusing the same code must fail — it is invalidated after a successful login.
-        assertThrows(BusinessException.class, () -> authService.login(login(ADMIN_EMAIL, code)),
-                "MFA code must be single-use");
-    }
-
-    @Test
-    void adminWithWrongCodeIsRejected() {
-        otpService.sendAdminMfaCode(ADMIN_EMAIL);
-        String wrong = "000000";
-
-        assertThrows(BusinessException.class, () -> authService.login(login(ADMIN_EMAIL, wrong)),
-                "an invalid code must be rejected");
+    void userWithWrongCodeIsRejected() {
+        otpService.sendLoginMfaCode(ADMIN_EMAIL);
+        assertThrows(BusinessException.class, () -> authService.login(login(ADMIN_EMAIL, "000000")));
     }
 }

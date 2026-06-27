@@ -1,42 +1,137 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router';
-import { Brain, Home, Users, TrendingUp, DollarSign, Network, Settings, Plus, Search, Inbox, BarChart3, LogOut, User, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router';
+import { BrandLogo } from './BrandLogo';
+import {
+  Settings,
+  Plus,
+  Search,
+  LogOut,
+  User,
+  ChevronDown,
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Avatar } from './ui/avatar';
+import { UserAvatar } from './ui/UserAvatar';
+import {
+  SIDEBAR_WIDTH,
+  navItemClass,
+  RESEARCHER_NAV,
+  pathMatchesNav,
+  getAdminNavSections,
+  getManagerNavSections,
+  getFunderNavSections,
+  getDepartmentNavSections,
+  homePathForRole,
+} from './layout/navStyles';
+import { dashboardPageClass } from './layout/dashboardStyles';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { NotificationDropdown } from './NotificationDropdown';
 import { ChatPanel, ChatHeaderButton } from './ChatPanel';
+import type { LucideIcon } from 'lucide-react';
 
-export function ResearcherLayout({ children }: { children: React.ReactNode }) {
+type SidebarItem = {
+  path: string;
+  icon: LucideIcon;
+  label: string;
+  badge?: number;
+};
+
+function roleTitle(role: string | undefined): string {
+  switch (role) {
+    case 'admin':
+      return 'Administration';
+    case 'manager':
+      return 'Research management';
+    case 'department_head':
+      return 'Department';
+    case 'funder':
+      return 'Funder portal';
+    default:
+      return 'Research workspace';
+  }
+}
+
+function sidebarForRole(
+  role: string | undefined,
+  pending: { researchers: number; publications: number; funders: number },
+): SidebarItem[] {
+  if (role === 'researcher' || !role) {
+    return RESEARCHER_NAV.map(item => ({ ...item }));
+  }
+
+  const sections =
+    role === 'admin'
+      ? getAdminNavSections(pending)
+      : role === 'manager'
+        ? getManagerNavSections()
+        : role === 'funder'
+          ? getFunderNavSections()
+          : role === 'department_head'
+            ? getDepartmentNavSections()
+            : [];
+
+  return sections.flatMap(section =>
+    section.items.map(item => ({
+      path: item.href ?? '/feed',
+      icon: item.icon,
+      label: item.label,
+      badge: item.badge,
+    })),
+  );
+}
+
+export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, collaborationRequests, chatMessages } = useApp();
+  const {
+    user,
+    logout,
+    collaborationRequests,
+    chatMessages,
+    pendingResearchers,
+    pendingPublications,
+    pendingFunders,
+  } = useApp();
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const incomingPending = collaborationRequests.filter(
-    req => req.toUserId === user?.id && req.status === 'pending'
+    req => req.toUserId === user?.id && req.status === 'pending',
   ).length;
   const sentApplications = collaborationRequests.filter(
-    req => req.fromUserId === user?.id
+    req => req.fromUserId === user?.id,
   ).length;
   const pendingRequestsCount = incomingPending + sentApplications;
-
-  const navItems = [
-    { path: '/feed', icon: Home, label: 'Feed & Discover' },
-    { path: '/requests', icon: Inbox, label: 'Requests', badge: pendingRequestsCount },
-    { path: '/researcher/analytics', icon: BarChart3, label: 'Analytics' },
-    { path: '/trends', icon: TrendingUp, label: 'Trends' },
-    { path: '/funding', icon: DollarSign, label: 'Funding' },
-    { path: '/network', icon: Network, label: 'Network' },
-  ];
 
   const unreadChat =
     user?.id != null
       ? chatMessages.filter(m => m.receiverId === user.id && !m.read).length
       : 0;
+
+  const navItems = useMemo(() => {
+    const items = sidebarForRole(user?.role, {
+      researchers: pendingResearchers.length,
+      publications: pendingPublications.length,
+      funders: pendingFunders.length,
+    });
+    if (user?.role === 'researcher' || !user?.role) {
+      return items.map(item =>
+        item.path === '/requests' ? { ...item, badge: pendingRequestsCount } : item,
+      );
+    }
+    return items;
+  }, [
+    user?.role,
+    pendingResearchers.length,
+    pendingPublications.length,
+    pendingFunders.length,
+    pendingRequestsCount,
+  ]);
+
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -48,77 +143,94 @@ export function ResearcherLayout({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
-        <div className="px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/feed')}>
-              <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-bold text-xl text-blue-900">
-                Research IQ
-              </span>
-            </div>
+  if (!user) return null;
 
-            <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search researchers, topics, papers..."
-                className="pl-10 bg-gray-50 border-gray-200"
-              />
-            </div>
+  const isResearcher = user.role === 'researcher' || user.role === undefined;
+
+  return (
+    <div className="min-h-screen bg-[var(--surface)] flex flex-col">
+      <header className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+        <div className="px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-6 min-w-0">
+            <button
+              type="button"
+              className="cursor-pointer shrink-0"
+              onClick={() => navigate(homePathForRole(user.role))}
+            >
+              <BrandLogo />
+            </button>
+
+            {isResearcher ? (
+              <div className="relative w-72 lg:w-96 hidden md:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search researchers, topics, papers…"
+                  className="pl-10 bg-muted/50 border-border"
+                />
+              </div>
+            ) : (
+              <span className="font-display font-semibold text-brand hidden sm:inline truncate">
+                {roleTitle(user.role)}
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-4">
-            <Button
-              className="bg-blue-900 hover:bg-blue-950"
-              onClick={() => navigate('/researcher/upload')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Share research
-            </Button>
+          <div className="flex items-center gap-3 shrink-0">
+            {isResearcher && (
+              <Button onClick={() => navigate('/researcher/upload')} className="hidden sm:inline-flex">
+                <Plus className="w-4 h-4 mr-2" />
+                Share research
+              </Button>
+            )}
 
             <NotificationDropdown />
-
             <ChatHeaderButton unreadTotal={unreadChat} />
 
-            {/* Profile Avatar with dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
+                type="button"
                 onClick={() => setProfileOpen(o => !o)}
                 className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
               >
-                <Avatar className="w-10 h-10 bg-blue-800 flex items-center justify-center text-white font-bold">
-                  {user?.name.charAt(0)}
-                </Avatar>
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <UserAvatar name={user.name} />
+                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
-                  <div className="px-4 py-2 border-b border-gray-100">
-                    <div className="font-semibold text-sm truncate">{user?.name}</div>
-                    <div className="text-xs text-gray-500 truncate">{user?.email}</div>
+                <div className="absolute right-0 top-12 w-52 bg-card rounded-xl shadow-lg border border-border py-1 z-50">
+                  <div className="px-4 py-2 border-b border-border">
+                    <div className="font-semibold text-sm">{user.name}</div>
+                    <div className="text-xs text-muted-foreground">{user.email}</div>
                   </div>
                   <button
-                    onClick={() => { setProfileOpen(false); navigate('/my-profile'); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate('/my-profile');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted"
                   >
-                    <User className="w-4 h-4" /> My Profile
+                    <User className="w-4 h-4" /> Profile
                   </button>
                   <button
-                    onClick={() => { setProfileOpen(false); navigate('/settings'); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate('/settings');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted"
                   >
                     <Settings className="w-4 h-4" /> Settings
                   </button>
-                  <div className="border-t border-gray-100 mt-1" />
+                  <div className="border-t border-border mt-1" />
                   <button
-                    onClick={() => { setProfileOpen(false); logout(); navigate('/'); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      logout();
+                      navigate('/');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10"
                   >
                     <LogOut className="w-4 h-4" /> Log out
                   </button>
@@ -129,62 +241,66 @@ export function ResearcherLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Left Sidebar */}
-        <aside className="w-56 bg-white border-r border-gray-200 min-h-screen sticky top-[65px] self-start shrink-0">
-          <div className="p-4">
-            {/* Navigation */}
-            <div className="mb-4">
-              <div className="text-xs font-semibold text-gray-400 mb-3 px-3 uppercase tracking-wider">Navigate</div>
-              <div className="space-y-0.5">
-                {navItems.map(item => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path ||
-                    (item.path === '/feed' && location.pathname === '/discover');
+      <div className="flex flex-1 min-h-0">
+        <aside
+          className={`hidden md:flex ${SIDEBAR_WIDTH} shrink-0 flex-col border-r border-border bg-card sticky top-[65px] self-start max-h-[calc(100vh-65px)] overflow-y-auto`}
+        >
+          <div className="p-4 flex flex-col gap-1 flex-1">
+            {navItems.map(item => {
+              const Icon = item.icon;
+              const isActive = pathMatchesNav(location.pathname, item.path);
 
-                  return (
-                    <button
-                      key={item.path}
-                      onClick={() => navigate(item.path)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                        isActive
-                          ? 'bg-blue-900 text-white font-medium'
-                          : 'text-gray-700 hover:bg-gray-100'
+              return (
+                <button
+                  key={item.path + item.label}
+                  type="button"
+                  onClick={() => navigate(item.path)}
+                  className={navItemClass(isActive)}
+                >
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="flex-1 text-left leading-snug">{item.label}</span>
+                  {item.badge != null && item.badge > 0 && (
+                    <Badge
+                      className={`text-[10px] px-1.5 py-0 h-5 min-w-5 ${
+                        isActive ? 'bg-white/20 text-white border-0' : 'bg-destructive text-white border-0'
                       }`}
                     >
-                      <Icon className="w-5 h-5 shrink-0" />
-                      <span className="flex-1 text-left">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <Badge className={`${isActive ? 'bg-white text-blue-900' : 'bg-red-500 text-white'} text-xs px-2 py-0.5`}>
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      {item.badge}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
 
-            {/* Logout */}
-            <div className="border-t border-gray-100 pt-4">
+            <div className="pt-4 mt-auto border-t border-border">
               <button
-                onClick={() => { logout(); navigate('/'); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all text-red-600 hover:bg-red-50"
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-5 h-5 shrink-0" />
                 Log out
               </button>
             </div>
           </div>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 min-w-0">
-          {children}
+          <div className={dashboardPageClass}>
+            <Outlet />
+          </div>
         </main>
       </div>
 
       <ChatPanel />
     </div>
   );
+}
+
+/** Legacy wrapper — pages should rely on route layout instead. */
+export function ResearcherLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

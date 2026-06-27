@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Bell, Check, X, Users, DollarSign, FileText, TrendingUp, Info } from 'lucide-react';
 import { Card } from './ui/card';
@@ -33,17 +33,17 @@ export function NotificationDropdown() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'collaboration':
-        return <Users className="w-5 h-5 text-blue-800" />;
+        return <Users className="w-5 h-5 text-brand" />;
       case 'funding':
-        return <DollarSign className="w-5 h-5 text-green-600" />;
+        return <DollarSign className="w-5 h-5 text-success" />;
       case 'publication':
         return <FileText className="w-5 h-5 text-purple-600" />;
       case 'citation':
         return <TrendingUp className="w-5 h-5 text-orange-600" />;
       case 'system':
-        return <Info className="w-5 h-5 text-gray-600" />;
+        return <Info className="w-5 h-5 text-muted-foreground" />;
       default:
-        return <Bell className="w-5 h-5 text-gray-600" />;
+        return <Bell className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
@@ -80,32 +80,32 @@ export function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="relative p-2 hover:bg-muted rounded-lg transition-colors"
       >
-        <Bell className="w-5 h-5 text-gray-600" />
+        <Bell className="w-5 h-5 text-muted-foreground" />
         {unreadCount > 0 && (
-          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+          <Badge className="absolute -top-1 -right-1 bg-destructive/100 text-white text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
           </Badge>
         )}
       </button>
 
       {isOpen && (
-        <Card className="absolute right-0 top-12 w-96 max-h-[600px] shadow-xl border-2 border-gray-200 z-50 overflow-hidden">
+        <Card className="absolute right-0 top-12 w-96 max-h-[600px] shadow-xl border-2 border-border z-50 overflow-hidden">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 bg-blue-50">
+          <div className="p-4 border-b border-border bg-brand-muted">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-lg">Notifications</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-gray-200 rounded transition-colors"
+                className="p-1 hover:bg-muted rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             {unreadCount > 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{unreadCount} unread</span>
+                <span className="text-sm text-muted-foreground">{unreadCount} unread</span>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -124,7 +124,7 @@ export function NotificationDropdown() {
             {notifications.length === 0 ? (
               <div className="p-12 text-center">
                 <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No notifications yet</p>
+                <p className="text-muted-foreground">No notifications yet</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
@@ -132,8 +132,8 @@ export function NotificationDropdown() {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 cursor-pointer transition-all hover:bg-gray-50 ${
-                      !notification.read ? 'bg-blue-50/50' : ''
+                    className={`p-4 cursor-pointer transition-all hover:bg-muted/50 ${
+                      !notification.read ? 'bg-brand-muted/50' : ''
                     }`}
                   >
                     <div className="flex gap-3">
@@ -146,13 +146,13 @@ export function NotificationDropdown() {
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-800 rounded-full flex-shrink-0 mt-1.5" />
+                            <div className="w-2 h-2 bg-brand rounded-full flex-shrink-0 mt-1.5" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                           {notification.message}
                         </p>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {formatTimeAgo(notification.createdAt)}
                         </span>
                       </div>
@@ -165,7 +165,7 @@ export function NotificationDropdown() {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-200 bg-gray-50">
+            <div className="p-3 border-t border-border bg-muted/50">
               <Button
                 variant="ghost"
                 size="sm"

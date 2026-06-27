@@ -1,6 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ResearcherLayout } from '../components/ResearcherLayout';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,7 +7,7 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { useApp } from '../context/AppContext';
-import { User, Shield, Globe, Sparkles, LogOut, Palette, Bell } from 'lucide-react';
+import { User, Shield, Globe, BarChart3, LogOut, Palette, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SettingsPage() {
@@ -38,15 +37,14 @@ export function SettingsPage() {
     { id: 'notifications', icon: Bell, label: 'Notifications', description: 'Email digest, in-app alerts' },
     { id: 'appearance', icon: Palette, label: 'Appearance', description: 'Theme & accent color' },
     { id: 'language', icon: Globe, label: 'Language & region', description: 'English (UK) · Europe/London' },
-    { id: 'ai', icon: Sparkles, label: 'AI preferences', description: 'Match sensitivity, recommendations' },
+    { id: 'ai', icon: Compass, label: 'Recommendations', description: 'Match sensitivity and collaboration suggestions' },
   ];
 
   return (
-    <ResearcherLayout>
       <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Settings</h1>
-          <p className="text-gray-600">Manage your account settings and preferences</p>
+          <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
 
         <div className="grid grid-cols-3 gap-6">
@@ -57,17 +55,17 @@ export function SettingsPage() {
               <Card
                 key={section.id}
                 className={`p-6 cursor-pointer transition-all hover:shadow-lg ${
-                  activeSection === section.id ? 'ring-2 ring-blue-600' : ''
+                  activeSection === section.id ? 'ring-2 ring-brand' : ''
                 }`}
                 onClick={() => setActiveSection(section.id)}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-6 h-6 text-blue-800" />
+                  <div className="w-12 h-12 bg-brand-muted rounded-full flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-6 h-6 text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold mb-1">{section.label}</h3>
-                    <p className="text-sm text-gray-600">{section.description}</p>
+                    <p className="text-sm text-muted-foreground">{section.description}</p>
                   </div>
                 </div>
               </Card>
@@ -108,7 +106,7 @@ export function SettingsPage() {
                 <Input defaultValue={user.department} className="mt-2" />
               </div>
 
-              <Button className="bg-blue-900 hover:bg-blue-950">
+              <Button className="">
                 Save changes
               </Button>
             </div>
@@ -122,7 +120,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Profile Visibility</div>
-                    <div className="text-sm text-gray-600">Control who can see your profile</div>
+                    <div className="text-sm text-muted-foreground">Control who can see your profile</div>
                   </div>
                   <Select defaultValue="public">
                     <SelectTrigger className="w-48">
@@ -139,7 +137,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Show Publication Metrics</div>
-                    <div className="text-sm text-gray-600">Display citations and h-index publicly</div>
+                    <div className="text-sm text-muted-foreground">Display citations and h-index publicly</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -147,7 +145,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Allow Collaboration Requests</div>
-                    <div className="text-sm text-gray-600">Let other researchers contact you</div>
+                    <div className="text-sm text-muted-foreground">Let other researchers contact you</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -155,7 +153,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Share Research Data</div>
-                    <div className="text-sm text-gray-600">Contribute to AI training and analytics</div>
+                    <div className="text-sm text-muted-foreground">Contribute to AI training and analytics</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -171,7 +169,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Email Digest</div>
-                    <div className="text-sm text-gray-600">Weekly summary of research updates</div>
+                    <div className="text-sm text-muted-foreground">Weekly summary of research updates</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -179,7 +177,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Collaboration Requests</div>
-                    <div className="text-sm text-gray-600">Get notified of new requests</div>
+                    <div className="text-sm text-muted-foreground">Get notified of new requests</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -187,7 +185,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Trending Topics</div>
-                    <div className="text-sm text-gray-600">Alerts for emerging research trends</div>
+                    <div className="text-sm text-muted-foreground">Alerts for emerging research trends</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -195,7 +193,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Funding Opportunities</div>
-                    <div className="text-sm text-gray-600">New grants matching your expertise</div>
+                    <div className="text-sm text-muted-foreground">New grants matching your expertise</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -210,15 +208,15 @@ export function SettingsPage() {
               <div>
                 <Label className="mb-3 block">Theme</Label>
                 <div className="grid grid-cols-3 gap-4">
-                  <Card className="p-4 border-2 border-blue-800 cursor-pointer">
+                  <Card className="p-4 border-2 border-brand cursor-pointer">
                     <div className="aspect-video bg-white rounded mb-2" />
                     <div className="font-medium text-center">Light</div>
                   </Card>
-                  <Card className="p-4 border-2 border-transparent hover:border-gray-300 cursor-pointer">
-                    <div className="aspect-video bg-gray-900 rounded mb-2" />
+                  <Card className="p-4 border-2 border-transparent hover:border-border cursor-pointer">
+                    <div className="aspect-video bg-brand-dark rounded mb-2" />
                     <div className="font-medium text-center">Dark</div>
                   </Card>
-                  <Card className="p-4 border-2 border-transparent hover:border-gray-300 cursor-pointer">
+                  <Card className="p-4 border-2 border-transparent hover:border-border cursor-pointer">
                     <div className="aspect-video from-gray-900 to-white rounded mb-2" />
                     <div className="font-medium text-center">Auto</div>
                   </Card>
@@ -232,7 +230,7 @@ export function SettingsPage() {
                     <button
                       key={color}
                       className={`w-12 h-12 rounded-full border-2 ${
-                        color === 'blue' ? 'border-blue-800' : 'border-transparent hover:border-gray-300'
+                        color === 'blue' ? 'border-brand' : 'border-transparent hover:border-border'
                       }`}
                       style={{ backgroundColor: color }}
                     />
@@ -287,7 +285,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Match Sensitivity</div>
-                    <div className="text-sm text-gray-600">How strict should collaboration matching be?</div>
+                    <div className="text-sm text-muted-foreground">How strict should collaboration matching be?</div>
                   </div>
                   <Select defaultValue="balanced">
                     <SelectTrigger className="w-48">
@@ -304,7 +302,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Cross-Disciplinary Suggestions</div>
-                    <div className="text-sm text-gray-600">Show matches outside your primary field</div>
+                    <div className="text-sm text-muted-foreground">Show matches outside your primary field</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -312,7 +310,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <div className="font-medium mb-1">Trending Topic Alerts</div>
-                    <div className="text-sm text-gray-600">AI-powered trend notifications</div>
+                    <div className="text-sm text-muted-foreground">AI-powered trend notifications</div>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -324,14 +322,14 @@ export function SettingsPage() {
         {/* Switch Workspace & Sign Out */}
         <Card className="p-6 mt-6">
           <div className="space-y-4">
-            <button className="w-full text-left p-4 hover:bg-gray-50 rounded-lg transition-colors">
+            <button className="w-full text-left p-4 hover:bg-muted/50 rounded-lg transition-colors">
               <div className="font-medium mb-1">Switch workspace</div>
-              <div className="text-sm text-gray-600">Quickly jump to a different role view.</div>
+              <div className="text-sm text-muted-foreground">Quickly jump to a different role view.</div>
             </button>
 
             <button
               onClick={handleLogout}
-              className="w-full text-left p-4 hover:bg-red-50 rounded-lg transition-colors text-red-600"
+              className="w-full text-left p-4 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
             >
               <div className="flex items-center gap-2">
                 <LogOut className="w-5 h-5" />
@@ -341,6 +339,5 @@ export function SettingsPage() {
           </div>
         </Card>
       </div>
-    </ResearcherLayout>
   );
 }

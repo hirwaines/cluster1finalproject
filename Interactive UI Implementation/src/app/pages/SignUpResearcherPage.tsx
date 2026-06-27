@@ -1,15 +1,16 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Brain, ArrowLeft, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { toast } from 'sonner';
 import { Card } from '../components/ui/card';
 import { api } from '../services/api';
+import { PageBackHeader } from '../components/layout/PageBackHeader';
 
 export function SignUpResearcherPage() {
   const navigate = useNavigate();
@@ -41,10 +42,10 @@ export function SignUpResearcherPage() {
     if (/[A-Z]/.test(pw)) score++;
     if (/[0-9]/.test(pw)) score++;
     if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (score <= 1) return { score, label: 'Weak', color: 'bg-red-500', textColor: 'text-red-600' };
+    if (score <= 1) return { score, label: 'Weak', color: 'bg-destructive/100', textColor: 'text-destructive' };
     if (score <= 3) return { score, label: 'Fair', color: 'bg-yellow-500', textColor: 'text-yellow-600' };
-    if (score === 4) return { score, label: 'Good', color: 'bg-blue-500', textColor: 'text-blue-800' };
-    return { score, label: 'Strong', color: 'bg-green-500', textColor: 'text-green-600' };
+    if (score === 4) return { score, label: 'Good', color: 'bg-brand-muted0', textColor: 'text-brand' };
+    return { score, label: 'Strong', color: 'bg-success-muted/500', textColor: 'text-success' };
   };
 
   const sendVerificationCode = async () => {
@@ -88,42 +89,29 @@ export function SignUpResearcherPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-blue-900">ResearchIQ</span>
-          </div>
-          <Button variant="ghost" onClick={() => navigate('/signup')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Role selection
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <PageBackHeader backTo="/signup" backLabel="Role selection" title="Researcher registration" maxWidth="lg" />
 
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-10 flex items-center gap-4">
           <StepIndicator number={1} title="Basics" active={step === 1} completed={step > 1} />
-          <div className="flex-1 h-1 bg-gray-200 rounded">
-            <div className={`h-full bg-blue-900 rounded transition-all ${step > 1 ? 'w-full' : 'w-0'}`} />
+          <div className="flex-1 h-1 bg-muted rounded">
+            <div className={`h-full bg-brand rounded transition-all ${step > 1 ? 'w-full' : 'w-0'}`} />
           </div>
           <StepIndicator number={2} title="Credentials" active={step === 2} completed={step > 2} />
-          <div className="flex-1 h-1 bg-gray-200 rounded">
-            <div className={`h-full bg-blue-900 rounded transition-all ${step > 2 ? 'w-full' : 'w-0'}`} />
+          <div className="flex-1 h-1 bg-muted rounded">
+            <div className={`h-full bg-brand rounded transition-all ${step > 2 ? 'w-full' : 'w-0'}`} />
           </div>
           <StepIndicator number={3} title="Publications" active={step === 3} completed={step > 3} />
         </div>
 
-        <Card className="p-8 bg-white shadow-md border border-gray-100">
+        <Card className="p-8 bg-white shadow-md border border-border">
           <form onSubmit={handleSubmit}>
             {step === 1 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">Researcher application</h2>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     Expertise is derived from publication metadata after verification — do not enter keyword lists manually.
                   </p>
                 </div>
@@ -147,7 +135,7 @@ export function SignUpResearcherPage() {
                         <div className="mt-2">
                           <div className="flex gap-1 mb-1">
                             {[1,2,3,4,5].map(i => (
-                              <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= s.score ? s.color : 'bg-gray-200'}`} />
+                              <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= s.score ? s.color : 'bg-muted'}`} />
                             ))}
                           </div>
                           <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
@@ -159,7 +147,7 @@ export function SignUpResearcherPage() {
                     <Label htmlFor="confirmPassword">Confirm *</Label>
                     <Input id="confirmPassword" type="password" value={formData.confirmPassword} onChange={e => updateForm('confirmPassword', e.target.value)} required />
                     {formData.confirmPassword && (
-                      <p className={`text-xs mt-1 ${formData.password === formData.confirmPassword ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-xs mt-1 ${formData.password === formData.confirmPassword ? 'text-success' : 'text-destructive'}`}>
                         {formData.password === formData.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
                       </p>
                     )}
@@ -180,14 +168,14 @@ export function SignUpResearcherPage() {
                   <Input id="orcid" value={formData.orcid} onChange={e => updateForm('orcid', e.target.value)} required />
                 </div>
                 {/* Email Verification */}
-                <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+                <div className="p-4 border rounded-lg bg-muted/50 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">Email Verification</p>
-                      <p className="text-xs text-gray-500">Verify your email before continuing</p>
+                      <p className="text-xs text-muted-foreground">Verify your email before continuing</p>
                     </div>
                     {emailVerified && (
-                      <span className="text-green-600 text-sm font-medium flex items-center gap-1">
+                      <span className="text-success text-sm font-medium flex items-center gap-1">
                         <CheckCircle2 className="w-4 h-4" /> Verified
                       </span>
                     )}
@@ -207,7 +195,7 @@ export function SignUpResearcherPage() {
                     </>
                   )}
                 </div>
-                <Button type="button" className="w-full bg-blue-900 hover:bg-blue-950" onClick={() => setStep(2)}>
+                <Button type="button" className="w-full " onClick={() => setStep(2)}>
                   Continue
                 </Button>
               </div>
@@ -216,7 +204,7 @@ export function SignUpResearcherPage() {
             {step === 2 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Verification credentials</h2>
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 text-sm text-blue-900">
+                <div className="bg-brand-muted border border-border rounded-lg p-4 flex gap-3 text-sm text-brand">
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   <p>Administrators review CV and degree information before activating your profile.</p>
                 </div>
@@ -245,14 +233,14 @@ export function SignUpResearcherPage() {
                 <div>
                   <Label>CV upload *</Label>
                   <label className="mt-2 flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50">
-                    <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                    <span className="text-sm text-gray-600">{formData.cv ? formData.cv.name : 'PDF or Word'}</span>
+                    <Upload className="w-6 h-6 text-muted-foreground/70 mb-1" />
+                    <span className="text-sm text-muted-foreground">{formData.cv ? formData.cv.name : 'PDF or Word'}</span>
                     <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={e => updateForm('cv', e.target.files?.[0] || null)} />
                   </label>
                 </div>
                 <div className="flex gap-3">
                   <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
-                  <Button type="button" className="flex-1 bg-blue-900 hover:bg-blue-950" onClick={() => setStep(3)}>Continue</Button>
+                  <Button type="button" className="flex-1 " onClick={() => setStep(3)}>Continue</Button>
                 </div>
               </div>
             )}
@@ -260,7 +248,7 @@ export function SignUpResearcherPage() {
             {step === 3 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Publications for indexing</h2>
-                <p className="text-gray-600 text-sm">
+                <p className="text-muted-foreground text-sm">
                   List titles or full citations (one per line). Keywords will be extracted automatically after approval — there is no manual expertise field.
                 </p>
                 <div>
@@ -273,7 +261,7 @@ export function SignUpResearcherPage() {
                 </div>
                 <div className="flex gap-3">
                   <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(2)}>Back</Button>
-                  <Button type="submit" className="flex-1 bg-blue-900 hover:bg-blue-950">Submit application</Button>
+                  <Button type="submit" className="flex-1 ">Submit application</Button>
                 </div>
               </div>
             )}
@@ -289,12 +277,12 @@ function StepIndicator({ number, title, active, completed }: { number: number; t
     <div className="flex flex-col items-center flex-1">
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mb-1 ${
-          completed || active ? 'bg-blue-900 text-white' : 'bg-gray-200 text-gray-500'
+          completed || active ? 'bg-brand text-white' : 'bg-muted text-muted-foreground'
         }`}
       >
         {completed ? <CheckCircle2 className="w-5 h-5" /> : number}
       </div>
-      <span className={`text-xs font-medium ${active || completed ? 'text-blue-800' : 'text-gray-400'}`}>{title}</span>
+      <span className={`text-xs font-medium ${active || completed ? 'text-brand' : 'text-muted-foreground/70'}`}>{title}</span>
     </div>
   );
 }

@@ -1,11 +1,10 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Avatar } from '../components/ui/avatar';
 import { useApp } from '../context/AppContext';
-import { ResearcherLayout } from '../components/ResearcherLayout';
 import {
   CheckCircle, XCircle, Clock, DollarSign, Users, FileText,
   MessageCircle, Send, Info,
@@ -67,17 +66,17 @@ export function RequestsPage() {
 
   const statusBadge = (status: string) => {
     if (status === 'pending') return (
-      <Badge className="bg-yellow-100 text-yellow-700">
+      <Badge className="bg-warning-muted text-warning-foreground">
         <Clock className="w-3 h-3 mr-1" /> Pending
       </Badge>
     );
     if (status === 'accepted') return (
-      <Badge className="bg-green-100 text-green-700">
+      <Badge className="bg-success-muted text-success-foreground">
         <CheckCircle className="w-3 h-3 mr-1" /> Approved
       </Badge>
     );
     return (
-      <Badge className="bg-red-100 text-red-700">
+      <Badge className="bg-destructive/10 text-destructive">
         <XCircle className="w-3 h-3 mr-1" /> Rejected
       </Badge>
     );
@@ -86,35 +85,34 @@ export function RequestsPage() {
   const activeList = mainTab === 'incoming' ? filteredIncoming : filteredSent;
 
   return (
-    <ResearcherLayout>
       <div className="p-8 max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Requests & Applications</h1>
-          <p className="text-gray-600">Track incoming collaboration requests and your submitted funding applications</p>
+          <p className="text-muted-foreground">Track incoming collaboration requests and your submitted funding applications</p>
         </div>
 
         {/* Main tabs */}
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
+        <div className="flex gap-2 mb-6 border-b border-border">
           <button
             onClick={() => { setMainTab('incoming'); setFilter('all'); }}
-            className={`flex items-center gap-2 px-5 py-3 font-medium text-sm transition-colors ${mainTab === 'incoming' ? 'border-b-2 border-blue-800 text-blue-800' : 'text-gray-600 hover:text-gray-900'}`}
+            className={`flex items-center gap-2 px-5 py-3 font-medium text-sm transition-colors ${mainTab === 'incoming' ? 'border-b-2 border-brand text-brand' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Users className="w-4 h-4" />
             Incoming Requests
             {countByStatus(incoming, 'pending') > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+              <span className="ml-1 px-2 py-0.5 bg-destructive/100 text-white text-xs rounded-full">
                 {countByStatus(incoming, 'pending')}
               </span>
             )}
           </button>
           <button
             onClick={() => { setMainTab('sent'); setFilter('all'); }}
-            className={`flex items-center gap-2 px-5 py-3 font-medium text-sm transition-colors ${mainTab === 'sent' ? 'border-b-2 border-blue-800 text-blue-800' : 'text-gray-600 hover:text-gray-900'}`}
+            className={`flex items-center gap-2 px-5 py-3 font-medium text-sm transition-colors ${mainTab === 'sent' ? 'border-b-2 border-brand text-brand' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Send className="w-4 h-4" />
             My Applications & Sent Requests
             {sent.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded-full">
+              <span className="ml-1 px-2 py-0.5 bg-muted text-foreground text-xs rounded-full">
                 {sent.length}
               </span>
             )}
@@ -129,8 +127,8 @@ export function RequestsPage() {
               onClick={() => setFilter(s)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                 filter === s
-                  ? 'bg-blue-900 text-white border-blue-800'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-white text-muted-foreground border-border hover:border-brand/40'
               }`}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -141,9 +139,9 @@ export function RequestsPage() {
 
         {/* ── SENT / MY APPLICATIONS banner ── */}
         {mainTab === 'sent' && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-800 shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900">
+          <div className="mb-6 p-4 bg-brand-muted border border-border rounded-xl flex items-start gap-3">
+            <Info className="w-5 h-5 text-brand shrink-0 mt-0.5" />
+            <div className="text-sm text-brand">
               <strong>Funding application status</strong> — this tab shows every collaboration request and funding application you have submitted. Status updates here in real time as the recipient responds.
             </div>
           </div>
@@ -152,12 +150,12 @@ export function RequestsPage() {
         {/* List */}
         <div className="space-y-4">
           {activeList.length === 0 ? (
-            <Card className="p-12 text-center border border-dashed border-gray-200">
-              <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-600 mb-2">
+            <Card className="p-12 text-center border border-dashed border-border">
+              <FileText className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-muted-foreground mb-2">
                 {mainTab === 'sent' ? 'No applications submitted yet' : 'No requests found'}
               </h3>
-              <p className="text-gray-500 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {mainTab === 'sent'
                   ? 'Apply for funding opportunities or send collaboration requests to see them tracked here.'
                   : filter !== 'all'
@@ -165,7 +163,7 @@ export function RequestsPage() {
                     : 'You have no incoming requests at the moment.'}
               </p>
               {mainTab === 'sent' && (
-                <Button className="mt-4 bg-blue-900 hover:bg-blue-950" onClick={() => navigate('/funding')}>
+                <Button className="mt-4 " onClick={() => navigate('/funding')}>
                   Browse Funding Opportunities
                 </Button>
               )}
@@ -184,7 +182,7 @@ export function RequestsPage() {
                   'border-l-yellow-400'
                 }`}>
                   <div className="flex gap-5">
-                    <Avatar className="w-14 h-14 bg-blue-800 flex items-center justify-center text-white font-bold text-xl shrink-0">
+                    <Avatar className="w-14 h-14 bg-brand flex items-center justify-center text-white font-bold text-xl shrink-0">
                       {displayName.charAt(0)}
                     </Avatar>
 
@@ -195,49 +193,49 @@ export function RequestsPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-lg font-bold">{displayName}</h3>
                             {statusBadge(request.status)}
-                            <Badge className={isFunding ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-blue-50 text-blue-900 border border-blue-200'}>
+                            <Badge className={isFunding ? 'bg-success-muted/50 text-success-foreground border border-green-200' : 'bg-brand-muted text-brand border border-border'}>
                               {isFunding ? <DollarSign className="w-3 h-3 mr-1" /> : <Users className="w-3 h-3 mr-1" />}
                               {isFunding ? 'Funding Application' : 'Collaboration'}
                             </Badge>
                           </div>
                           {otherUser && (
-                            <p className="text-sm text-gray-500 mt-0.5">{otherUser.department} · {otherUser.institution}</p>
+                            <p className="text-sm text-muted-foreground mt-0.5">{otherUser.department} · {otherUser.institution}</p>
                           )}
                         </div>
-                        <span className="text-xs text-gray-400 shrink-0">
+                        <span className="text-xs text-muted-foreground/70 shrink-0">
                           {new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
 
                       {/* Details card */}
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 space-y-1.5 text-sm">
+                      <div className="bg-muted/50 border border-border rounded-lg p-4 mb-4 space-y-1.5 text-sm">
                         {request.researchTitle && (
-                          <div><span className="font-medium text-gray-700">Research:</span> <span className="text-gray-600">{request.researchTitle}</span></div>
+                          <div><span className="font-medium text-foreground">Research:</span> <span className="text-muted-foreground">{request.researchTitle}</span></div>
                         )}
                         {request.fundingTitle && (
-                          <div><span className="font-medium text-gray-700">Funding call:</span> <span className="text-gray-600">{request.fundingTitle}</span></div>
+                          <div><span className="font-medium text-foreground">Funding call:</span> <span className="text-muted-foreground">{request.fundingTitle}</span></div>
                         )}
                         {request.collaborationType && (
-                          <div><span className="font-medium text-gray-700">Type:</span> <span className="text-gray-600">{request.collaborationType}</span></div>
+                          <div><span className="font-medium text-foreground">Type:</span> <span className="text-muted-foreground">{request.collaborationType}</span></div>
                         )}
                         {request.proposedAmount && (
-                          <div><span className="font-medium text-gray-700">Proposed amount:</span> <span className="text-green-700 font-semibold">{request.proposedAmount}</span></div>
+                          <div><span className="font-medium text-foreground">Proposed amount:</span> <span className="text-success-foreground font-semibold">{request.proposedAmount}</span></div>
                         )}
                         {request.timeline && (
-                          <div><span className="font-medium text-gray-700">Timeline:</span> <span className="text-gray-600">{request.timeline}</span></div>
+                          <div><span className="font-medium text-foreground">Timeline:</span> <span className="text-muted-foreground">{request.timeline}</span></div>
                         )}
-                        <div className="pt-1 border-t border-gray-200">
-                          <span className="font-medium text-gray-700">Message:</span>
-                          <p className="text-gray-600 mt-0.5 leading-relaxed">{request.message}</p>
+                        <div className="pt-1 border-t border-border">
+                          <span className="font-medium text-foreground">Message:</span>
+                          <p className="text-muted-foreground mt-0.5 leading-relaxed">{request.message}</p>
                         </div>
                       </div>
 
                       {/* Status explanation for sent tab */}
                       {mainTab === 'sent' && (
                         <div className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${
-                          request.status === 'accepted' ? 'bg-green-50 text-green-800 border border-green-200' :
-                          request.status === 'rejected' ? 'bg-red-50 text-red-800 border border-red-200' :
-                          'bg-yellow-50 text-yellow-800 border border-yellow-200'
+                          request.status === 'accepted' ? 'bg-success-muted/50 text-success-foreground border border-green-200' :
+                          request.status === 'rejected' ? 'bg-destructive/10 text-destructive border border-red-200' :
+                          'bg-yellow-50 text-warning-foreground border border-yellow-200'
                         }`}>
                           {request.status === 'accepted' && <CheckCircle className="w-4 h-4 shrink-0" />}
                           {request.status === 'rejected' && <XCircle className="w-4 h-4 shrink-0" />}
@@ -258,7 +256,7 @@ export function RequestsPage() {
                             <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAccept(request.id, request.fromUserName)}>
                               <CheckCircle className="w-4 h-4 mr-1" /> Accept
                             </Button>
-                            <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50" onClick={() => handleReject(request.id, request.fromUserName)}>
+                            <Button size="sm" variant="outline" className="border-red-300 text-destructive hover:bg-destructive/10" onClick={() => handleReject(request.id, request.fromUserName)}>
                               <XCircle className="w-4 h-4 mr-1" /> Decline
                             </Button>
                           </>
@@ -273,7 +271,7 @@ export function RequestsPage() {
                         </Button>
                         {/* Sent + rejected → suggest retry */}
                         {mainTab === 'sent' && request.status === 'rejected' && isFunding && (
-                          <Button size="sm" variant="outline" className="border-blue-300 text-blue-800" onClick={() => navigate('/funding')}>
+                          <Button size="sm" variant="outline" className="border-brand/40 text-brand" onClick={() => navigate('/funding')}>
                             Browse Other Opportunities
                           </Button>
                         )}
@@ -286,6 +284,5 @@ export function RequestsPage() {
           )}
         </div>
       </div>
-    </ResearcherLayout>
   );
 }

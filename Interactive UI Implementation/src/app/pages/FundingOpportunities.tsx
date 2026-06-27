@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -8,9 +8,10 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Switch } from '../components/ui/switch';
+import { DashboardPageHeader, tabClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
-import { Brain, ArrowLeft, DollarSign, Clock, Target, Bell, BellOff, CheckCircle, Download, Trophy } from 'lucide-react';
+import { DollarSign, Clock, Target, Bell, BellOff, CheckCircle, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 
 const FUNDING_DB = [
@@ -102,34 +103,14 @@ export function FundingOpportunities() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white/80 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl">Funding Opportunities</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" /> Export
-            </Button>
-            <Button variant="ghost" onClick={() => navigate(-1 as any)}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back
-            </Button>
-          </div>
-        </div>
-      </nav>
+    <>
+      <DashboardPageHeader
+        title="Funding Opportunities"
+        description="Grant recommendations matched to your publication keywords"
+      />
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold mb-2">Funding Opportunities</h1>
-          <p className="text-gray-600">Grant recommendations matched to your publication keywords</p>
-        </div>
-
-        {/* Smart match banner */}
-        <Card className="p-6 mb-8 bg-blue-900 text-white">
+      {/* Smart match banner */}
+        <Card className="p-6 mb-8 bg-brand text-white">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
               <Target className="w-7 h-7" />
@@ -145,25 +126,25 @@ export function FundingOpportunities() {
           </div>
         </Card>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-gray-200">
-          {([
-            { id: 'opportunities', label: 'Opportunities', icon: DollarSign },
-            { id: 'alerts', label: 'Alert Settings', icon: Bell },
-            { id: 'awards', label: 'Award History', icon: Trophy },
-          ] as const).map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3 font-medium text-sm transition-colors ${activeTab === tab.id ? 'border-b-2 border-blue-800 text-blue-800' : 'text-gray-600 hover:text-gray-900'}`}
-              >
-                <Icon className="w-4 h-4" /> {tab.label}
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
+        {([
+          { id: 'opportunities', label: 'Opportunities', icon: DollarSign },
+          { id: 'alerts', label: 'Alert Settings', icon: Bell },
+          { id: 'awards', label: 'Award History', icon: Trophy },
+        ] as const).map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={tabClass(activeTab === tab.id)}
+            >
+              <Icon className="w-4 h-4" /> {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
         {/* OPPORTUNITIES TAB */}
         {activeTab === 'opportunities' && (
@@ -173,30 +154,30 @@ export function FundingOpportunities() {
               const isUrgent = daysLeft <= 30;
               const isSaved = savedOpps.has(opp.id);
               return (
-                <Card key={opp.id} className={`p-6 hover:shadow-xl transition-all border-2 ${isUrgent ? 'border-red-100' : 'border-transparent hover:border-blue-200'}`}>
+                <Card key={opp.id} className={`p-6 hover:shadow-xl transition-all border-2 ${isUrgent ? 'border-destructive/20' : 'border-transparent hover:border-border'}`}>
                   <div className="flex gap-6">
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1 flex-wrap">
-                            <h3 className="text-xl font-bold text-blue-900">{opp.title}</h3>
-                            <Badge className={opp.matchScore >= 70 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}>
+                            <h3 className="text-xl font-bold text-brand">{opp.title}</h3>
+                            <Badge className={opp.matchScore >= 70 ? 'bg-success-muted text-success-foreground' : 'bg-muted text-muted-foreground'}>
                               {opp.matchScore}% Match
                             </Badge>
-                            {isUrgent && <Badge className="bg-red-100 text-red-700">Deadline soon</Badge>}
+                            {isUrgent && <Badge className="bg-destructive/10 text-destructive">Deadline soon</Badge>}
                           </div>
-                          <p className="text-gray-600 text-sm">{opp.agency}</p>
+                          <p className="text-muted-foreground text-sm">{opp.agency}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-6 text-sm mb-4">
                         <div className="flex items-center gap-1.5">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="font-bold text-green-700">{opp.amount}</span>
+                          <DollarSign className="w-4 h-4 text-success" />
+                          <span className="font-bold text-success-foreground">{opp.amount}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-gray-500" />
-                          <span className={isUrgent ? 'text-red-600 font-bold' : 'text-gray-600'}>
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span className={isUrgent ? 'text-destructive font-bold' : 'text-muted-foreground'}>
                             {daysLeft} day{daysLeft !== 1 ? 's' : ''} left · {opp.deadline}
                           </span>
                         </div>
@@ -204,9 +185,9 @@ export function FundingOpportunities() {
 
                       {/* Deadline progress bar */}
                       <div className="mb-4">
-                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${isUrgent ? 'bg-red-500' : 'bg-blue-500'}`}
+                            className={`h-full rounded-full ${isUrgent ? 'bg-destructive' : 'bg-brand'}`}
                             style={{ width: `${Math.min(100, Math.max(5, 100 - (daysLeft / 120) * 100))}%` }}
                           />
                         </div>
@@ -216,7 +197,7 @@ export function FundingOpportunities() {
                         {opp.areas.map(area => (
                           <Badge
                             key={area}
-                            className={opp.matchedAreas.includes(area) ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-600'}
+                            className={opp.matchedAreas.includes(area) ? 'bg-brand-muted text-brand' : 'bg-muted text-muted-foreground'}
                           >
                             {opp.matchedAreas.includes(area) && '✓ '}{area}
                           </Badge>
@@ -224,8 +205,8 @@ export function FundingOpportunities() {
                       </div>
 
                       {opp.matchedAreas.length > 0 && (
-                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
-                          <div className="flex items-start gap-2 text-sm text-blue-900">
+                        <div className="bg-brand-muted border border-border rounded-lg p-3 mb-4">
+                          <div className="flex items-start gap-2 text-sm text-brand">
                             <Target className="w-4 h-4 shrink-0 mt-0.5" />
                             <span><strong>Why this matches:</strong> Your publications contain {opp.matchedAreas.join(', ')} — directly aligned with this grant's focus areas.</span>
                           </div>
@@ -233,7 +214,7 @@ export function FundingOpportunities() {
                       )}
 
                       <div className="flex items-center gap-3">
-                        <Button className="bg-blue-900 hover:bg-blue-950" onClick={() => handleApply(opp)}>
+                        <Button className="" onClick={() => handleApply(opp)}>
                           Apply Now
                         </Button>
                         <Button
@@ -247,25 +228,25 @@ export function FundingOpportunities() {
                           size="sm"
                           onClick={() => { setAlertSettings(prev => ({ ...prev, [opp.id]: !prev[opp.id] })); toast.success(alertSettings[opp.id] ? 'Alert removed' : 'Alert set for this opportunity'); }}
                         >
-                          {alertSettings[opp.id] ? <Bell className="w-4 h-4 text-blue-800" /> : <BellOff className="w-4 h-4 text-gray-400" />}
+                          {alertSettings[opp.id] ? <Bell className="w-4 h-4 text-brand" /> : <BellOff className="w-4 h-4 text-muted-foreground/70" />}
                         </Button>
                       </div>
                     </div>
 
                     {/* Success probability card */}
                     <div className="w-52 shrink-0 space-y-3">
-                      <Card className="p-4 bg-blue-50 border border-blue-100 text-center">
-                        <div className="text-xs text-gray-500 mb-1">Success Probability</div>
-                        <div className="text-4xl font-bold text-green-600 mb-1">{opp.successRate}%</div>
-                        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-800 rounded-full" style={{ width: `${opp.successRate}%` }} />
+                      <Card className="p-4 bg-brand-muted border border-border text-center">
+                        <div className="text-xs text-muted-foreground mb-1">Success Probability</div>
+                        <div className="text-4xl font-bold text-success mb-1">{opp.successRate}%</div>
+                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-brand rounded-full" style={{ width: `${opp.successRate}%` }} />
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">Based on field avg.</div>
+                        <div className="text-xs text-muted-foreground mt-1">Based on field avg.</div>
                       </Card>
                       <Card className="p-4 text-center">
-                        <div className="text-xs text-gray-500 mb-1">Match Score</div>
-                        <div className="text-3xl font-bold text-blue-800">{opp.matchScore}%</div>
-                        <div className="text-xs text-gray-500 mt-1">{opp.matchedAreas.length} keyword{opp.matchedAreas.length !== 1 ? 's' : ''} matched</div>
+                        <div className="text-xs text-muted-foreground mb-1">Match Score</div>
+                        <div className="text-3xl font-bold text-brand">{opp.matchScore}%</div>
+                        <div className="text-xs text-muted-foreground mt-1">{opp.matchedAreas.length} keyword{opp.matchedAreas.length !== 1 ? 's' : ''} matched</div>
                       </Card>
                     </div>
                   </div>
@@ -280,24 +261,24 @@ export function FundingOpportunities() {
           <div className="space-y-4">
             <Card className="p-6">
               <h3 className="text-xl font-bold mb-2">Funding Alert Configuration</h3>
-              <p className="text-sm text-gray-600 mb-6">Enable alerts to be notified when deadlines approach or new matching opportunities are added.</p>
+              <p className="text-sm text-muted-foreground mb-6">Enable alerts to be notified when deadlines approach or new matching opportunities are added.</p>
               <div className="space-y-4">
                 {opportunitiesWithMatch.map(opp => {
                   const daysLeft = getDaysLeft(opp.deadline);
                   return (
-                    <div key={opp.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-blue-200 transition-all">
+                    <div key={opp.id} className="flex items-center justify-between p-4 border border-border rounded-xl hover:border-border transition-all">
                       <div className="flex-1">
                         <div className="font-semibold">{opp.title}</div>
-                        <div className="text-sm text-gray-500">{opp.agency} · {daysLeft} days left</div>
+                        <div className="text-sm text-muted-foreground">{opp.agency} · {daysLeft} days left</div>
                         <div className="flex gap-2 mt-1">
-                          <Badge className={opp.matchScore >= 70 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} style={{ fontSize: '11px' }}>
+                          <Badge className={opp.matchScore >= 70 ? 'bg-success-muted text-success-foreground' : 'bg-muted text-muted-foreground'} style={{ fontSize: '11px' }}>
                             {opp.matchScore}% match
                           </Badge>
-                          {daysLeft <= 30 && <Badge className="bg-red-100 text-red-700" style={{ fontSize: '11px' }}>Urgent</Badge>}
+                          {daysLeft <= 30 && <Badge className="bg-destructive/10 text-destructive" style={{ fontSize: '11px' }}>Urgent</Badge>}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500">{alertSettings[opp.id] ? 'Alert on' : 'Alert off'}</span>
+                        <span className="text-sm text-muted-foreground">{alertSettings[opp.id] ? 'Alert on' : 'Alert off'}</span>
                         <Switch
                           checked={!!alertSettings[opp.id]}
                           onCheckedChange={v => {
@@ -321,10 +302,10 @@ export function FundingOpportunities() {
                   { label: '7-day deadline reminder', desc: 'Urgent reminder 7 days before deadline', key: 'deadline_7' },
                   { label: 'Application status updates', desc: 'Notify when application status changes', key: 'status' },
                 ].map(pref => (
-                  <div key={pref.key} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div key={pref.key} className="flex items-center justify-between p-4 border border-border rounded-lg">
                     <div>
                       <div className="font-medium">{pref.label}</div>
-                      <div className="text-sm text-gray-500">{pref.desc}</div>
+                      <div className="text-sm text-muted-foreground">{pref.desc}</div>
                     </div>
                     <Switch defaultChecked onCheckedChange={v => toast.success(v ? 'Alert enabled' : 'Alert disabled')} />
                   </div>
@@ -339,13 +320,13 @@ export function FundingOpportunities() {
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-6">
               {[
-                { label: 'Total Awards', value: AWARD_HISTORY.length, color: 'text-blue-800' },
-                { label: 'Total Funded', value: '$250K', color: 'text-green-600' },
-                { label: 'Success Rate', value: '67%', color: 'text-purple-600' },
+                { label: 'Total Awards', value: AWARD_HISTORY.length, color: 'text-brand' },
+                { label: 'Total Funded', value: '$250K', color: 'text-success' },
+                { label: 'Success Rate', value: '67%', color: 'text-brand' },
               ].map(m => (
                 <Card key={m.label} className="p-6 text-center">
                   <div className={`text-4xl font-bold ${m.color} mb-1`}>{m.value}</div>
-                  <div className="text-sm text-gray-600">{m.label}</div>
+                  <div className="text-sm text-muted-foreground">{m.label}</div>
                 </Card>
               ))}
             </div>
@@ -354,19 +335,19 @@ export function FundingOpportunities() {
               <h3 className="text-xl font-bold mb-4">Award History</h3>
               <div className="space-y-4">
                 {AWARD_HISTORY.map((award, i) => (
-                  <div key={i} className="flex items-center justify-between p-5 border border-gray-200 rounded-xl hover:border-blue-200 transition-all">
+                  <div key={i} className="flex items-center justify-between p-5 border border-border rounded-xl hover:border-border transition-all">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
                         <Trophy className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <div className="font-bold">{award.title}</div>
-                        <div className="text-sm text-gray-500">{award.agency} · {award.year}</div>
+                        <div className="text-sm text-muted-foreground">{award.agency} · {award.year}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-green-600">{award.amount}</div>
-                      <Badge className={award.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}>
+                      <div className="text-xl font-bold text-success">{award.amount}</div>
+                      <Badge className={award.status === 'Active' ? 'bg-success-muted text-success-foreground' : 'bg-muted text-muted-foreground'}>
                         {award.status === 'Active' && <CheckCircle className="w-3 h-3 mr-1" />}
                         {award.status}
                       </Badge>
@@ -377,7 +358,6 @@ export function FundingOpportunities() {
             </Card>
           </div>
         )}
-      </div>
 
       {/* Apply Dialog */}
       <Dialog open={showApplyDialog} onOpenChange={setShowApplyDialog}>
@@ -387,9 +367,9 @@ export function FundingOpportunities() {
           </DialogHeader>
           {selectedFunding && (
             <div className="space-y-5">
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                <div className="font-bold text-blue-900 mb-1">{selectedFunding.title}</div>
-                <div className="text-sm text-blue-900">{selectedFunding.agency} · {selectedFunding.amount}</div>
+              <div className="bg-brand-muted border border-border rounded-lg p-4">
+                <div className="font-bold text-brand mb-1">{selectedFunding.title}</div>
+                <div className="text-sm text-brand">{selectedFunding.agency} · {selectedFunding.amount}</div>
               </div>
               <div>
                 <Label>Proposed Budget Amount *</Label>
@@ -405,7 +385,7 @@ export function FundingOpportunities() {
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setShowApplyDialog(false)}>Cancel</Button>
-                <Button className="flex-1 bg-blue-900 hover:bg-blue-950" onClick={handleSubmitApplication}>
+                <Button className="flex-1 " onClick={handleSubmitApplication}>
                   Submit Application
                 </Button>
               </div>
@@ -413,6 +393,6 @@ export function FundingOpportunities() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

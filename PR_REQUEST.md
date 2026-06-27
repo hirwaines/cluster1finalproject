@@ -75,12 +75,40 @@ Key outcomes:
 
 ---
 
+## Demo login credentials (dev profile)
+
+Start the backend with the **`dev`** profile so demo users are seeded (`DemoUsersSeedInitializer`). Passwords are reset on each startup.
+
+| Role | Email | Password | Notes |
+|------|-------|----------|--------|
+| **Admin** | `ineshirwa8@gmail.com` | `79544921` | MFA required — after login, enter the 6-digit OTP from the **backend terminal** (or email if mail is configured). Look for `login MFA OTP for email:` in logs. |
+| **Researcher** | `sarah.chen@auca.edu` | `Research@123` | Lands on `/feed` |
+| **Researcher** | `claver.ndahayo@auca.edu` | `Research@123` | Alternate researcher account |
+| **Manager** | `manager@researchiq.com` | `Research@123` | Lands on manager dashboard overview |
+| **Funder** | `funder@impact.org` | `Research@123` | Lands on funder portfolio overview |
+| **Department head** | `department.head@auca.edu` | `Research@123` | Lands on department overview |
+
+**Local run (typical):**
+```bash
+# Backend (port 8080, dev profile)
+cd research-iq-backend
+./gradlew bootRun --args='--spring.profiles.active=dev'
+
+# Frontend
+cd "Interactive UI Implementation"
+npm run dev
+```
+
+Frontend: http://localhost:5173/login · Backend API: http://localhost:8080
+
+---
+
 ## Test plan
 
 ### Auth & roles
 
-- [ ] Log in as **admin** (`ineshirwa8@gmail.com` / demo password) → lands on **Dashboard** (`?tab=overview`)
-- [ ] Log in as **researcher**, **manager**, **funder**, **department head** (demo accounts) → each lands on correct role home
+- [ ] Log in as **admin** (`ineshirwa8@gmail.com` / `79544921` + MFA from backend logs) → lands on **Dashboard** (`?tab=overview`)
+- [ ] Log in as **researcher** (`sarah.chen@auca.edu` / `Research@123`), **manager** (`manager@researchiq.com` / `Research@123`), **funder** (`funder@impact.org` / `Research@123`), **department head** (`department.head@auca.edu` / `Research@123`) → each lands on correct role home
 
 ### Admin navigation
 

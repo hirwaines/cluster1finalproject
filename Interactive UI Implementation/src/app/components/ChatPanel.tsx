@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -100,23 +100,23 @@ export function ChatPanel() {
     <Sheet open={chatDrawerOpen} onOpenChange={setChatDrawerOpen}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-2xl p-0 flex flex-col bg-white border-l border-gray-200"
+        className="w-full sm:max-w-2xl p-0 flex flex-col bg-white border-l border-border"
       >
-        <SheetHeader className="px-4 py-3 border-b border-gray-100 shrink-0">
+        <SheetHeader className="px-4 py-3 border-b border-border shrink-0">
           <SheetTitle className="text-lg flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-blue-900" />
+            <MessageCircle className="w-5 h-5 text-brand" />
             Messages
           </SheetTitle>
-          <p className="text-sm text-gray-500 font-normal">
+          <p className="text-sm text-muted-foreground font-normal">
             Institutional messaging (demo — persisted in session mock store).
           </p>
         </SheetHeader>
 
         <div className="flex flex-1 min-h-0">
-          <div className="w-[280px] border-r border-gray-100 flex flex-col bg-gray-50/80">
-            <div className="p-2 border-b border-gray-100">
+          <div className="w-[280px] border-r border-border flex flex-col bg-muted/50/80">
+            <div className="p-2 border-b border-border">
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
                 <Input
                   placeholder="Search conversations"
                   className="pl-8 h-9 bg-white"
@@ -142,7 +142,7 @@ export function ChatPanel() {
                     }`}
                   >
                     <div className="relative">
-                      <Avatar className="w-9 h-9 bg-blue-900/15 text-blue-900 font-semibold">
+                      <Avatar className="w-9 h-9 bg-brand/15 text-brand font-semibold">
                         {peer.name.charAt(0)}
                       </Avatar>
                       <span
@@ -155,12 +155,12 @@ export function ChatPanel() {
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm truncate">{peer.name}</span>
                         {unread > 0 && (
-                          <Badge className="bg-blue-900 text-white text-[10px] px-1.5 py-0 h-5">
+                          <Badge className="bg-brand text-white text-[10px] px-1.5 py-0 h-5">
                             {unread}
                           </Badge>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">{peer.department}</div>
+                      <div className="text-xs text-muted-foreground truncate">{peer.department}</div>
                     </div>
                   </button>
                 );
@@ -171,13 +171,13 @@ export function ChatPanel() {
           <div className="flex-1 flex flex-col min-w-0 bg-white">
             {threadPeer ? (
               <>
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                  <Avatar className="w-10 h-10 bg-blue-900/15 text-blue-900 font-semibold">
+                <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+                  <Avatar className="w-10 h-10 bg-brand/15 text-brand font-semibold">
                     {threadPeer.name.charAt(0)}
                   </Avatar>
                   <div>
                     <div className="font-semibold">{threadPeer.name}</div>
-                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <div className="text-xs text-muted-foreground flex items-center gap-2">
                       <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
                       Typically replies within 24h (mock status)
                     </div>
@@ -191,14 +191,14 @@ export function ChatPanel() {
                       <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                         <div
                           className={`max-w-[85%] rounded-lg px-3 py-2 text-sm shadow-sm ${
-                            mine ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-900'
+                            mine ? 'bg-brand text-white' : 'bg-muted text-foreground'
                           }`}
                         >
                           <div>{m.content}</div>
                           {m.attachmentName && (
                             <div
                               className={`mt-1 text-xs flex items-center gap-1 ${
-                                mine ? 'text-blue-100' : 'text-blue-900'
+                                mine ? 'text-brand-muted' : 'text-brand'
                               }`}
                             >
                               <Paperclip className="w-3 h-3" />
@@ -207,7 +207,7 @@ export function ChatPanel() {
                           )}
                           <div
                             className={`text-[10px] mt-1 opacity-80 ${
-                              mine ? 'text-blue-100' : 'text-gray-500'
+                              mine ? 'text-brand-muted' : 'text-muted-foreground'
                             }`}
                           >
                             {new Date(m.timestamp).toLocaleString()}
@@ -217,13 +217,13 @@ export function ChatPanel() {
                     );
                   })}
                   {typingPreview && (
-                    <div className="text-xs text-gray-500 italic px-1">
+                    <div className="text-xs text-muted-foreground italic px-1">
                       {threadPeer.name.split(' ')[0]} is typing…
                     </div>
                   )}
                 </div>
 
-                <div className="border-t border-gray-100 p-3 space-y-2">
+                <div className="border-t border-border p-3 space-y-2">
                   <div className="flex gap-2 items-center">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -236,7 +236,7 @@ export function ChatPanel() {
                           <button
                             key={e}
                             type="button"
-                            className="text-xl hover:bg-gray-100 rounded p-1"
+                            className="text-xl hover:bg-muted rounded p-1"
                             onClick={() => handleSend(e)}
                           >
                             {e}
@@ -267,7 +267,7 @@ export function ChatPanel() {
                     />
                     <Button
                       type="button"
-                      className="bg-blue-900 hover:bg-blue-900 shrink-0"
+                      className="bg-brand hover:bg-brand/90 shrink-0"
                       onClick={() => handleSend(draft)}
                     >
                       Send
@@ -276,9 +276,9 @@ export function ChatPanel() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-gray-500 px-6 text-center gap-2">
+              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground px-6 text-center gap-2">
                 <MessageCircle className="w-12 h-12 text-gray-300" />
-                <p className="font-medium text-gray-700">Select a conversation</p>
+                <p className="font-medium text-foreground">Select a conversation</p>
                 <p className="text-sm">Choose a colleague from the list or open chat from Collaborators.</p>
               </div>
             )}
@@ -294,13 +294,13 @@ export function ChatHeaderButton({ unreadTotal }: { unreadTotal: number }) {
   return (
     <button
       type="button"
-      className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
+      className="relative p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
       aria-label="Open messages"
       onClick={() => setChatDrawerOpen(true)}
     >
       <MessageCircle className="w-5 h-5" />
       {unreadTotal > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-900 text-white text-[10px] font-semibold flex items-center justify-center">
+        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-brand text-white text-[10px] font-semibold flex items-center justify-center">
           {unreadTotal > 9 ? '9+' : unreadTotal}
         </span>
       )}

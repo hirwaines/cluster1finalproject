@@ -21,7 +21,7 @@ public class OtpService {
     private final EmailService emailService;
     private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, OtpRecord> emailVerificationOtps = new ConcurrentHashMap<>();
-    private final Map<String, OtpRecord> adminMfaOtps = new ConcurrentHashMap<>();
+    private final Map<String, OtpRecord> loginMfaOtps = new ConcurrentHashMap<>();
     private final Map<String, OtpRecord> passwordResetOtps = new ConcurrentHashMap<>();
 
     public String sendEmailVerificationCode(String email) {
@@ -43,18 +43,36 @@ public class OtpService {
         emailVerificationOtps.remove(normalize(email));
     }
 
-    public String sendAdminMfaCode(String email) {
-        String code = issue(adminMfaOtps, email, "admin MFA");
-        emailService.sendOtp(email, "ResearchIQ – Admin login code", code, "admin two-factor authentication");
+    public String sendLoginMfaCode(String email) {
+        String code = issue(loginMfaOtps, email, "login MFA");
+        emailService.sendOtp(email, "ResearchIQ – Login verification code", code, "login verification");
         return code;
     }
 
-    public boolean verifyAdminMfaCode(String email, String otp) {
-        return consume(adminMfaOtps, email, otp, "admin MFA");
+    public boolean verifyLoginMfaCode(String email, String otp) {
+        return consume(loginMfaOtps, email, otp, "login MFA");
     }
 
+    public void invalidateLoginMfaCode(String email) {
+        loginMfaOtps.remove(normalize(email));
+    }
+
+    /** @deprecated use {@link #sendLoginMfaCode(String)} */
+    @Deprecated
+    public String sendAdminMfaCode(String email) {
+        return sendLoginMfaCode(email);
+    }
+
+    /** @deprecated use {@link #verifyLoginMfaCode(String, String)} */
+    @Deprecated
+    public boolean verifyAdminMfaCode(String email, String otp) {
+        return verifyLoginMfaCode(email, otp);
+    }
+
+    /** @deprecated use {@link #invalidateLoginMfaCode(String)} */
+    @Deprecated
     public void invalidateAdminMfaCode(String email) {
-        adminMfaOtps.remove(normalize(email));
+        invalidateLoginMfaCode(email);
     }
 
     public String sendPasswordResetCode(String email) {
@@ -75,7 +93,7 @@ public class OtpService {
         String normalizedEmail = normalize(email);
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));
         store.put(normalizedEmail, new OtpRecord(code, Instant.now().getEpochSecond() + TTL_SECONDS, false));
-        log.info("{} OTP for {} (console fallback): {}", purpose, normalizedEmail, code);
+        log.info("{} OTP for {}: {} (also check terminal if email delivery fails)", purpose, normalizedEmail, code);
         return code;
     }
 

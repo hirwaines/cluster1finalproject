@@ -1,11 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Input } from '../components/ui/input';
+import { tabClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
-import { Brain, ArrowLeft, Play, Pause, Square, RotateCw, TrendingUp, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Play, Pause, Square, RotateCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { Progress } from '../components/ui/progress';
 
 export function ResearchKnowledgeProcessing() {
@@ -28,120 +28,94 @@ export function ResearchKnowledgeProcessing() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600';
+        return 'text-success';
       case 'running':
-        return 'text-blue-800';
+        return 'text-brand';
       case 'paused':
-        return 'text-yellow-600';
+        return 'text-warning';
       case 'failed':
-        return 'text-red-600';
+        return 'text-destructive';
       default:
-        return 'text-gray-600';
+        return 'text-muted-foreground';
     }
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success-muted text-success-foreground';
       case 'running':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-brand-muted text-brand';
       case 'paused':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warning-muted text-warning-foreground';
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white/80 backdrop-blur-md border-b border-blue-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl">Knowledge Processing</span>
-          </div>
-          <Button variant="ghost" onClick={() => navigate('/admin/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Admin
-          </Button>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-4xl font-bold mb-2">Research Knowledge Processing</h1>
-        <p className="text-gray-600 mb-8">Manage NLP processing jobs and data quality metrics</p>
-
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={() => setActiveTab('jobs')}
-            className={`px-6 py-3 font-medium transition-colors ${
-              activeTab === 'jobs'
-                ? 'border-b-2 border-blue-800 text-blue-800'
-                : 'border-b-2 border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Processing Jobs
-          </button>
-          <button
-            onClick={() => setActiveTab('quality')}
-            className={`px-6 py-3 font-medium transition-colors ${
-              activeTab === 'quality'
-                ? 'border-b-2 border-blue-800 text-blue-800'
-                : 'border-b-2 border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Data Quality
-          </button>
-        </div>
+    <>
+      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('jobs')}
+          className={tabClass(activeTab === 'jobs')}
+        >
+          Processing Jobs
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('quality')}
+          className={tabClass(activeTab === 'quality')}
+        >
+          Data Quality
+        </button>
+      </div>
 
         {/* JOBS TAB */}
         {activeTab === 'jobs' && (
           <div className="space-y-6">
             {/* Summary Stats */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
               <Card className="p-6">
-                <div className="text-3xl font-bold text-blue-800 mb-1">{processingJobs.length}</div>
-                <div className="text-sm text-gray-600">Total Jobs</div>
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-1">{processingJobs.length}</div>
+                <div className="text-sm text-muted-foreground">Total Jobs</div>
               </Card>
               <Card className="p-6">
-                <div className="text-3xl font-bold text-green-600 mb-1">
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-success mb-1">
                   {processingJobs.filter(j => j.status === 'completed').length}
                 </div>
-                <div className="text-sm text-gray-600">Completed</div>
+                <div className="text-sm text-muted-foreground">Completed</div>
               </Card>
               <Card className="p-6">
-                <div className="text-3xl font-bold text-blue-800 mb-1">
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-1">
                   {processingJobs.filter(j => j.status === 'running').length}
                 </div>
-                <div className="text-sm text-gray-600">Running</div>
+                <div className="text-sm text-muted-foreground">Running</div>
               </Card>
               <Card className="p-6">
-                <div className="text-3xl font-bold text-purple-600 mb-1">
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand-dark mb-1">
                   {processingJobs.reduce((sum, j) => sum + j.documentsProcessed, 0).toLocaleString()}
                 </div>
-                <div className="text-sm text-gray-600">Documents Processed</div>
+                <div className="text-sm text-muted-foreground">Documents Processed</div>
               </Card>
             </div>
 
             {/* Jobs List & Detail */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Jobs List */}
               <div className="col-span-1 space-y-2">
-                <h3 className="font-bold text-lg mb-4">Jobs Queue</h3>
+                <h3 className="font-semibold text-base mb-4">Jobs Queue</h3>
                 {processingJobs.map(job => (
                   <Card
                     key={job.id}
                     onClick={() => setSelectedJobId(job.id)}
                     className={`p-4 cursor-pointer transition-all ${
                       selectedJobId === job.id
-                        ? 'border-2 border-blue-800 bg-blue-50'
-                        : 'border border-gray-200 hover:shadow-md'
+                        ? 'border-2 border-brand bg-brand-muted'
+                        : 'border border-border hover:shadow-md'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -150,9 +124,9 @@ export function ResearchKnowledgeProcessing() {
                         {job.status.toUpperCase()}
                       </Badge>
                     </div>
-                    <div className="text-xs text-gray-600 mb-2">Type: {job.jobType}</div>
+                    <div className="text-xs text-muted-foreground mb-2">Type: {job.jobType}</div>
                     <Progress value={job.progressPercent} className="h-1" />
-                    <div className="text-xs text-gray-500 mt-1">{job.progressPercent}% complete</div>
+                    <div className="text-xs text-muted-foreground mt-1">{job.progressPercent}% complete</div>
                   </Card>
                 ))}
               </div>
@@ -163,8 +137,8 @@ export function ResearchKnowledgeProcessing() {
                   <Card className="p-8">
                     <div className="flex items-start justify-between mb-6">
                       <div>
-                        <h3 className="text-2xl font-bold mb-2">{selectedJob.sourceName}</h3>
-                        <p className="text-gray-600">{selectedJob.jobType.toUpperCase()} Processing</p>
+                        <h3 className="text-lg font-semibold mb-2">{selectedJob.sourceName}</h3>
+                        <p className="text-muted-foreground">{selectedJob.jobType.toUpperCase()} Processing</p>
                       </div>
                       <Badge className={`text-lg px-4 py-2 ${getStatusBadgeVariant(selectedJob.status)}`}>
                         {selectedJob.status.toUpperCase()}
@@ -175,7 +149,7 @@ export function ResearchKnowledgeProcessing() {
                     <div className="mb-6">
                       <div className="flex justify-between mb-2">
                         <span className="font-medium">Progress</span>
-                        <span className="text-gray-600">{selectedJob.progressPercent}%</span>
+                        <span className="text-muted-foreground">{selectedJob.progressPercent}%</span>
                       </div>
                       <Progress value={selectedJob.progressPercent} className="h-3" />
                     </div>
@@ -183,44 +157,44 @@ export function ResearchKnowledgeProcessing() {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b">
                       <div>
-                        <div className="text-2xl font-bold text-blue-800">
+                        <div className="text-lg font-semibold text-brand">
                           {selectedJob.documentsProcessed}/{selectedJob.totalDocuments}
                         </div>
-                        <div className="text-sm text-gray-600">Documents Processed</div>
+                        <div className="text-sm text-muted-foreground">Documents Processed</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-green-600">{selectedJob.successRate}%</div>
-                        <div className="text-sm text-gray-600">Success Rate</div>
+                        <div className="text-lg font-semibold text-success">{selectedJob.successRate}%</div>
+                        <div className="text-sm text-muted-foreground">Success Rate</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-purple-600">
+                        <div className="text-lg font-semibold text-brand-dark">
                           {selectedJob.keywordsExtracted.toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600">Keywords Extracted</div>
+                        <div className="text-sm text-muted-foreground">Keywords Extracted</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-orange-600">
+                        <div className="text-lg font-semibold text-warning">
                           {selectedJob.entitiesFound.toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600">Entities Found</div>
+                        <div className="text-sm text-muted-foreground">Entities Found</div>
                       </div>
                     </div>
 
                     {/* Timeline */}
                     <div className="space-y-3 mb-6 pb-6 border-b">
                       <div className="flex items-center gap-3">
-                        <Clock className="w-4 h-4 text-gray-400" />
+                        <Clock className="w-4 h-4 text-muted-foreground/70" />
                         <div>
                           <div className="text-sm font-medium">Started</div>
-                          <div className="text-xs text-gray-500">{selectedJob.startTime}</div>
+                          <div className="text-xs text-muted-foreground">{selectedJob.startTime}</div>
                         </div>
                       </div>
                       {selectedJob.endTime && (
                         <div className="flex items-center gap-3">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <CheckCircle className="w-4 h-4 text-success" />
                           <div>
                             <div className="text-sm font-medium">Completed</div>
-                            <div className="text-xs text-gray-500">{selectedJob.endTime}</div>
+                            <div className="text-xs text-muted-foreground">{selectedJob.endTime}</div>
                           </div>
                         </div>
                       )}
@@ -241,7 +215,7 @@ export function ResearchKnowledgeProcessing() {
                           <Button
                             onClick={() => cancelProcessingJob(selectedJob.id)}
                             variant="outline"
-                            className="flex-1 text-red-600 hover:text-red-700"
+                            className="flex-1 text-destructive hover:text-destructive"
                           >
                             <Square className="w-4 h-4 mr-2" />
                             Cancel
@@ -251,7 +225,7 @@ export function ResearchKnowledgeProcessing() {
                       {selectedJob.status === 'paused' && (
                         <Button
                           onClick={() => resumeProcessingJob(selectedJob.id)}
-                          className="flex-1 bg-blue-800 hover:bg-blue-900"
+                          className="flex-1 bg-brand hover:bg-brand/90"
                         >
                           <Play className="w-4 h-4 mr-2" />
                           Resume
@@ -260,7 +234,7 @@ export function ResearchKnowledgeProcessing() {
                       {selectedJob.status === 'completed' && (
                         <Button
                           onClick={() => startProcessingJob(selectedJob.sourceId, selectedJob.jobType)}
-                          className="flex-1 bg-blue-900"
+                          className="flex-1 bg-brand"
                         >
                           <RotateCw className="w-4 h-4 mr-2" />
                           Rerun Job
@@ -270,7 +244,7 @@ export function ResearchKnowledgeProcessing() {
                   </Card>
                 ) : (
                   <Card className="p-8 flex items-center justify-center min-h-96">
-                    <div className="text-center text-gray-500">
+                    <div className="text-center text-muted-foreground">
                       <p>Select a job to view details</p>
                     </div>
                   </Card>
@@ -286,15 +260,15 @@ export function ResearchKnowledgeProcessing() {
             {selectedJob && (
               <Card className="p-8">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2">Data Quality Report</h3>
-                  <p className="text-gray-600">From job: {selectedJob.sourceName}</p>
+                  <h3 className="text-lg font-semibold mb-2">Data Quality Report</h3>
+                  <p className="text-muted-foreground">From job: {selectedJob.sourceName}</p>
                 </div>
 
                 {/* Overall Score */}
                 <div className="mb-8 pb-8 border-b">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-lg font-medium">Overall Quality Score</span>
-                    <div className="text-4xl font-bold text-blue-800">92/100</div>
+                    <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand">92/100</div>
                   </div>
                   <Progress value={92} className="h-4" />
                 </div>
@@ -303,72 +277,71 @@ export function ResearchKnowledgeProcessing() {
                 <div className="grid grid-cols-2 gap-6 mb-8 pb-8 border-b">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <AlertCircle className="w-5 h-5 text-yellow-600" />
-                      <h4 className="font-bold">Missing Data Types</h4>
+                      <AlertCircle className="w-5 h-5 text-warning" />
+                      <h4 className="font-semibold">Missing Data Types</h4>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Abstract</span>
-                        <span className="text-gray-600">45 items</span>
+                        <span className="text-muted-foreground">45 items</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Keywords</span>
-                        <span className="text-gray-600">120 items</span>
+                        <span className="text-muted-foreground">120 items</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Citations</span>
-                        <span className="text-gray-600">12 items</span>
+                        <span className="text-muted-foreground">12 items</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
-                      <h4 className="font-bold">Validation Errors</h4>
+                      <AlertCircle className="w-5 h-5 text-destructive" />
+                      <h4 className="font-semibold">Validation Errors</h4>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Date Format Issues</span>
-                        <span className="text-red-600">8 errors</span>
+                        <span className="text-destructive">8 errors</span>
                       </div>
                       <div className="flex justify-between">
                         <span>DOI Format Issues</span>
-                        <span className="text-red-600">3 errors</span>
+                        <span className="text-destructive">3 errors</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Duplicates & Enrichment */}
-                <div className="grid grid-cols-2 gap-6">
-                  <Card className="p-6 bg-blue-50">
-                    <div className="text-3xl font-bold text-blue-800 mb-2">23</div>
-                    <div className="text-sm text-gray-600">Duplicate Records Found</div>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+                  <Card className="p-6 bg-brand-muted">
+                    <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-2">23</div>
+                    <div className="text-sm text-muted-foreground">Duplicate Records Found</div>
                     <Button variant="outline" className="mt-4 w-full">
                       View Duplicates
                     </Button>
                   </Card>
 
-                  <Card className="p-6 bg-green-50">
+                  <Card className="p-6 bg-success-muted/50">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="text-2xl font-bold text-green-600">1,180</div>
-                        <div className="text-sm text-gray-600">Enriched Records</div>
+                        <div className="text-lg font-semibold text-success">1,180</div>
+                        <div className="text-sm text-muted-foreground">Enriched Records</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-yellow-600">68</div>
-                        <div className="text-xs text-gray-600">Pending</div>
+                        <div className="text-lg font-semibold text-warning">68</div>
+                        <div className="text-xs text-muted-foreground">Pending</div>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">91.6% enrichment rate</div>
+                    <div className="text-xs text-muted-foreground">91.6% enrichment rate</div>
                   </Card>
                 </div>
               </Card>
             )}
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }

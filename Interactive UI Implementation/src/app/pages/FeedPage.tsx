@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ResearcherLayout } from '../components/ResearcherLayout';
 import { SystemAnnouncements } from '../components/SystemAnnouncements';
 import { Card } from '../components/ui/card';
 import { Avatar } from '../components/ui/avatar';
@@ -88,81 +87,71 @@ export function FeedPage() {
   ];
 
   return (
-    <ResearcherLayout>
-      <div className="flex">
-        {/* ── Main area ── */}
-        <div className="flex-1 min-w-0 p-6">
+    <>
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search by title, keyword, abstract…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          className="h-9 border-border/80 bg-card pl-9 text-sm"
+        />
+      </div>
 
-          {/* Header + search */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-1">Research Feed</h1>
-            <p className="text-gray-500 text-sm mb-4">Discover, search, and engage with the latest research</p>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex rounded-md border border-border bg-muted/50 p-0.5">
+          <button
+            type="button"
+            onClick={() => setView('feed')}
+            className={`rounded px-3 py-1 text-xs font-medium transition-colors ${view === 'feed' ? 'bg-card text-brand shadow-sm' : 'text-muted-foreground'}`}
+          >
+            Feed
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('discover')}
+            className={`rounded px-3 py-1 text-xs font-medium transition-colors ${view === 'discover' ? 'bg-card text-brand shadow-sm' : 'text-muted-foreground'}`}
+          >
+            Discover
+          </button>
+        </div>
+        <span className="text-xs text-muted-foreground">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+      </div>
 
-            {/* Search bar */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search by title, keyword, abstract…"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="pl-10 bg-white border-gray-200"
-              />
-            </div>
+      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setCategory(cat)}
+            className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+              category === cat
+                ? 'border-brand bg-brand text-white'
+                : 'border-border bg-card text-foreground hover:border-brand/30'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
-            {/* View tabs */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setView('feed')}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'feed' ? 'bg-white shadow-sm text-blue-900' : 'text-gray-600'}`}
-                >
-                  Feed
-                </button>
-                <button
-                  onClick={() => setView('discover')}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'discover' ? 'bg-white shadow-sm text-blue-900' : 'text-gray-600'}`}
-                >
-                  Discover
-                </button>
-              </div>
-              <span className="text-sm text-gray-400">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
-            </div>
+      {view === 'feed' && (
+        <div className="mb-4">
+          <SystemAnnouncements limit={2} />
+        </div>
+      )}
 
-            {/* Category pills */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
-                    category === cat
-                      ? 'bg-blue-900 text-white border-blue-900'
-                      : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* System announcements (feed view only) */}
-          {view === 'feed' && (
-            <div className="mb-6">
-              <SystemAnnouncements limit={2} />
-            </div>
-          )}
-
-          {/* Posts */}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="min-w-0 flex-1">
           {filtered.length === 0 ? (
-            <Card className="p-12 text-center border border-dashed border-gray-200">
-              <BookOpen className="w-14 h-14 text-gray-300 mx-auto mb-3" />
-              <h3 className="font-bold text-gray-600 mb-1">No results found</h3>
-              <p className="text-sm text-gray-500">Try a different keyword or category.</p>
+            <Card className="p-12 text-center border border-dashed border-border">
+              <BookOpen className="w-14 h-14 text-muted-foreground/30 mx-auto mb-3" />
+              <h3 className="font-bold text-muted-foreground mb-1">No results found</h3>
+              <p className="text-sm text-muted-foreground">Try a different keyword or category.</p>
             </Card>
           ) : view === 'feed' ? (
             /* ── Feed view (single column) ── */
-            <div className="space-y-6 max-w-2xl">
+            <div className="space-y-4 w-full">
               {filtered.map(post => {
                 const postAuthor = researchers.find(r => r.id === post.researcherId);
                 const isLiked = likedPosts.has(post.id);
@@ -172,7 +161,7 @@ export function FeedPage() {
                     <div className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar
-                          className="w-10 h-10 bg-blue-800 flex items-center justify-center text-white font-bold cursor-pointer"
+                          className="w-10 h-10 bg-brand flex items-center justify-center text-white font-bold cursor-pointer"
                           onClick={() => navigate(`/researcher/profile/${postAuthor?.id}`)}
                         >
                           {postAuthor?.name.charAt(0)}
@@ -184,12 +173,12 @@ export function FeedPage() {
                           >
                             {postAuthor?.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {postAuthor?.department} · {postAuthor?.institution}
                           </div>
                         </div>
                       </div>
-                      <Badge className={post.fundingStatus === 'seeking' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}>
+                      <Badge className={post.fundingStatus === 'seeking' ? 'bg-warning-muted text-warning-foreground' : 'bg-success-muted text-success-foreground'}>
                         {post.fundingStatus === 'seeking' ? 'Seeking Funding' : post.fundingStatus}
                       </Badge>
                     </div>
@@ -197,28 +186,28 @@ export function FeedPage() {
                     {/* Content */}
                     <div className="px-4 pb-4">
                       <h3
-                        className="text-lg font-bold text-blue-900 mb-2 cursor-pointer hover:underline"
+                        className="text-base font-semibold text-brand mb-2 cursor-pointer hover:underline"
                         onClick={() => navigate(`/research/${post.id}`)}
                       >
                         {post.title}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-3">{post.abstract}</p>
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-3">{post.abstract}</p>
                       <div className="flex flex-wrap gap-1.5 mb-4">
                         {post.keywords.slice(0, 4).map(k => <Badge key={k} variant="secondary" className="text-xs">{k}</Badge>)}
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between pt-3 border-t border-border">
                         <div className="flex items-center gap-4">
-                          <button onClick={() => handleLike(post.id)} className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 transition-colors text-sm">
+                          <button onClick={() => handleLike(post.id)} className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 transition-colors text-sm">
                             <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                             {(post.likes || 0) + (isLiked ? 1 : 0)}
                           </button>
-                          <button className="flex items-center gap-1.5 text-gray-500 hover:text-blue-900 transition-colors text-sm">
+                          <button className="flex items-center gap-1.5 text-muted-foreground hover:text-brand transition-colors text-sm">
                             <MessageCircle className="w-5 h-5" />
                             {post.comments || 0}
                           </button>
-                          <button className="flex items-center gap-1.5 text-gray-500 hover:text-green-600 transition-colors text-sm">
+                          <button className="flex items-center gap-1.5 text-muted-foreground hover:text-success transition-colors text-sm">
                             <Share2 className="w-5 h-5" />
                             {post.shares || 0}
                           </button>
@@ -227,7 +216,7 @@ export function FeedPage() {
                           <Button size="sm" variant="outline" onClick={() => navigate(`/research/${post.id}`)}>
                             View more
                           </Button>
-                          <Button size="sm" className="bg-blue-900 hover:bg-blue-950" onClick={() => setCollaborationTarget(post.id)}>
+                          <Button size="sm" className="" onClick={() => setCollaborationTarget(post.id)}>
                             Collaborate
                           </Button>
                         </div>
@@ -239,7 +228,7 @@ export function FeedPage() {
             </div>
           ) : (
             /* ── Discover view (2-column grid) ── */
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {filtered.map(post => {
                 const postAuthor = researchers.find(r => r.id === post.researcherId);
                 const isLiked = likedPosts.has(post.id);
@@ -247,33 +236,33 @@ export function FeedPage() {
                   <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-all">
                     <div className="px-4 pt-4 flex items-center justify-between border-b pb-3">
                       <div className="flex items-center gap-3">
-                        <button onClick={() => handleLike(post.id)} className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 text-sm">
+                        <button onClick={() => handleLike(post.id)} className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 text-sm">
                           <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                           {(post.likes || 0) + (isLiked ? 1 : 0)}
                         </button>
-                        <button className="flex items-center gap-1.5 text-gray-500 text-sm">
+                        <button className="flex items-center gap-1.5 text-muted-foreground text-sm">
                           <MessageCircle className="w-4 h-4" />{post.comments || 0}
                         </button>
                       </div>
-                      <button className="text-gray-400 hover:text-blue-900">
+                      <button className="text-muted-foreground/70 hover:text-brand">
                         <Bookmark className="w-4 h-4" />
                       </button>
                     </div>
                     <div className="p-4">
                       <h3
-                        className="font-bold text-blue-900 mb-2 line-clamp-2 cursor-pointer hover:underline text-sm"
+                        className="font-semibold text-brand mb-2 line-clamp-2 cursor-pointer hover:underline text-sm"
                         onClick={() => navigate(`/research/${post.id}`)}
                       >
                         {post.title}
                       </h3>
-                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">{post.abstract}</p>
+                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{post.abstract}</p>
                       <div className="flex flex-wrap gap-1 mb-3">
                         {post.keywords.slice(0, 3).map(k => <Badge key={k} variant="secondary" className="text-xs">{k}</Badge>)}
                       </div>
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between pt-3 border-t border-border">
                         <div className="flex items-center gap-2">
                           <Avatar
-                            className="w-7 h-7 bg-blue-800 flex items-center justify-center text-white font-bold text-xs cursor-pointer"
+                            className="w-7 h-7 bg-brand flex items-center justify-center text-white font-bold text-xs cursor-pointer"
                             onClick={() => navigate(`/researcher/profile/${postAuthor?.id}`)}
                           >
                             {postAuthor?.name.charAt(0)}
@@ -285,7 +274,7 @@ export function FeedPage() {
                             {postAuthor?.name}
                           </span>
                         </div>
-                        <Button size="sm" className="bg-blue-900 hover:bg-blue-950 text-xs h-7 px-3" onClick={() => navigate(`/research/${post.id}`)}>
+                        <Button size="sm" className=" text-xs h-7 px-3" onClick={() => navigate(`/research/${post.id}`)}>
                           View more
                         </Button>
                       </div>
@@ -298,45 +287,45 @@ export function FeedPage() {
         </div>
 
         {/* ── Right sidebar ── */}
-        <aside className="w-72 p-6 space-y-5 sticky top-[65px] self-start shrink-0">
+        <aside className="hidden w-56 shrink-0 space-y-3 lg:block">
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-green-600" />
+              <TrendingUp className="w-4 h-4 text-success" />
               <h3 className="font-semibold text-sm">Trending topics</h3>
             </div>
             <div className="space-y-2.5">
               {trendingTopics.map(t => (
                 <div key={t.topic} className="flex items-center justify-between">
                   <button
-                    className="text-sm font-medium text-gray-700 hover:text-blue-900 text-left"
+                    className="text-sm font-medium text-foreground hover:text-brand text-left"
                     onClick={() => { setQuery(t.topic); }}
                   >
                     {t.topic}
                   </button>
-                  <Badge className="bg-green-100 text-green-700 text-xs">{t.growth}</Badge>
+                  <Badge className="bg-success-muted text-success-foreground text-xs">{t.growth}</Badge>
                 </div>
               ))}
             </div>
           </Card>
 
-          <Card className="p-4 bg-blue-50 border-blue-100">
+          <Card className="p-4 bg-brand-muted border-border">
             <div className="flex items-center gap-2 mb-2">
-              <UsersIcon className="w-4 h-4 text-blue-900" />
+              <UsersIcon className="w-4 h-4 text-brand" />
               <h3 className="font-semibold text-sm">Your network</h3>
             </div>
-            <p className="text-xs text-gray-600 mb-3">Connect with researchers who share your expertise areas.</p>
+            <p className="text-xs text-muted-foreground mb-3">Connect with researchers who share your expertise areas.</p>
             <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => navigate('/network')}>
               Explore network
             </Button>
           </Card>
 
-          <Card className="p-4 bg-blue-50 border-blue-100">
+          <Card className="p-4 bg-brand-muted border-border">
             <div className="flex items-center gap-2 mb-2">
-              <BookOpen className="w-4 h-4 text-blue-900" />
+              <BookOpen className="w-4 h-4 text-brand" />
               <h3 className="font-semibold text-sm">Share your research</h3>
             </div>
-            <p className="text-xs text-gray-600 mb-3">Publish your latest findings to reach researchers across Rwanda.</p>
-            <Button size="sm" className="w-full bg-blue-900 hover:bg-blue-950 text-xs" onClick={() => navigate('/researcher/upload')}>
+            <p className="text-xs text-muted-foreground mb-3">Publish your latest findings to reach researchers across Rwanda.</p>
+            <Button size="sm" className="w-full  text-xs" onClick={() => navigate('/researcher/upload')}>
               Upload paper
             </Button>
           </Card>
@@ -351,7 +340,7 @@ export function FeedPage() {
           </DialogHeader>
           {selectedAuthor && (
             <div className="space-y-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 To: <strong>{selectedAuthor.name}</strong> · {selectedAuthor.department}
               </div>
               <div>
@@ -378,12 +367,12 @@ export function FeedPage() {
               </div>
               <div className="flex gap-3 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setCollaborationTarget(null)}>Cancel</Button>
-                <Button className="flex-1 bg-blue-900 hover:bg-blue-950" onClick={handleCollaboration}>Send request</Button>
+                <Button className="flex-1 " onClick={handleCollaboration}>Send request</Button>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
-    </ResearcherLayout>
+    </>
   );
 }

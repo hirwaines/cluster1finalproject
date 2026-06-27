@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -7,8 +7,10 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Checkbox } from '../components/ui/checkbox';
+import { tabClass } from '../components/layout';
+import { usePageHeaderActions } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
-import { Brain, ArrowLeft, Plus, Edit2, Trash2, Download, Send, Clock } from 'lucide-react';
+import { Plus, Trash2, Download, Clock } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -53,6 +55,17 @@ export function ReportBuilder() {
       navigate('/login');
     }
   }, [user, navigate]);
+
+  const headerActions = useMemo(
+    () => (
+      <Button onClick={() => setShowCreateDialog(true)}>
+        <Plus className="w-4 h-4 mr-2" />
+        Create Report
+      </Button>
+    ),
+    [],
+  );
+  usePageHeaderActions(headerActions);
 
   if (!user || !['admin', 'manager'].includes(user.role)) {
     return null;
@@ -104,63 +117,31 @@ export function ReportBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white/80 backdrop-blur-md border-b border-blue-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl">Report Builder</span>
-          </div>
-          <Button variant="ghost" onClick={() => navigate('/manager/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Report Builder</h1>
-            <p className="text-gray-600">Create, manage, and schedule research reports</p>
-          </div>
-          <Button
-            onClick={() => setShowCreateDialog(true)}
-            className="bg-blue-900"
+    <>
+      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
+        {([
+          { id: 'list' as const, label: 'My Reports' },
+          { id: 'create' as const, label: 'Create' },
+          { id: 'history' as const, label: 'History' },
+        ]).map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={tabClass(activeTab === tab.id)}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Report
-          </Button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8">
-          {(['list', 'create', 'history'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === tab
-                  ? 'border-b-2 border-blue-800 text-blue-800'
-                  : 'border-b-2 border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {tab === 'create' && 'Create'}
-              {tab === 'list' && 'My Reports'}
-              {tab === 'history' && 'History'}
-            </button>
-          ))}
-        </div>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
         {/* LIST TAB */}
         {activeTab === 'list' && (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* Report List */}
             <div className="col-span-1">
               <Card className="p-6 sticky top-20">
-                <h3 className="font-bold text-lg mb-4">Reports ({userReports.length})</h3>
+                <h3 className="font-semibold text-base mb-4">Reports ({userReports.length})</h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {userReports.map(report => (
                     <Card
@@ -168,12 +149,12 @@ export function ReportBuilder() {
                       onClick={() => setSelectedReportId(report.id)}
                       className={`p-3 cursor-pointer transition-all ${
                         selectedReportId === report.id
-                          ? 'border-2 border-blue-800 bg-blue-50'
+                          ? 'border-2 border-brand bg-brand-muted'
                           : 'hover:shadow-md'
                       }`}
                     >
                       <div className="font-medium text-sm line-clamp-1">{report.name}</div>
-                      <div className="text-xs text-gray-500">{report.type}</div>
+                      <div className="text-xs text-muted-foreground">{report.type}</div>
                       <div className="flex items-center gap-2 mt-2">
                         <Badge className="text-xs">{report.status}</Badge>
                       </div>
@@ -189,13 +170,13 @@ export function ReportBuilder() {
                 <Card className="p-8">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold mb-2">{selectedReport.name}</h2>
-                      <p className="text-gray-600">{selectedReport.description}</p>
+                      <h2 className="text-lg font-semibold mb-2">{selectedReport.name}</h2>
+                      <p className="text-muted-foreground">{selectedReport.description}</p>
                     </div>
                     <Badge className={`${
                       selectedReport.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-success-muted text-success-foreground'
+                        : 'bg-warning-muted text-warning-foreground'
                     }`}>
                       {selectedReport.status}
                     </Badge>
@@ -204,29 +185,29 @@ export function ReportBuilder() {
                   {/* Report Info */}
                   <div className="grid grid-cols-2 gap-6 mb-8 pb-8 border-b">
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Type</div>
+                      <div className="text-sm font-medium text-muted-foreground">Type</div>
                       <div className="text-lg capitalize">{selectedReport.type}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Format</div>
+                      <div className="text-sm font-medium text-muted-foreground">Format</div>
                       <div className="text-lg uppercase">{selectedReport.format}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Schedule</div>
+                      <div className="text-sm font-medium text-muted-foreground">Schedule</div>
                       <div className="text-lg capitalize">{selectedReport.schedule}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Created</div>
+                      <div className="text-sm font-medium text-muted-foreground">Created</div>
                       <div className="text-lg">{selectedReport.createdAt}</div>
                     </div>
                   </div>
 
                   {/* Sections */}
                   <div className="mb-8 pb-8 border-b">
-                    <h3 className="font-bold mb-4">Report Sections</h3>
+                    <h3 className="font-semibold mb-4">Report Sections</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedReport.sections.map(section => (
-                        <Badge key={section} className="bg-blue-100 text-blue-800">
+                        <Badge key={section} className="bg-brand-muted text-brand">
                           {section}
                         </Badge>
                       ))}
@@ -236,10 +217,10 @@ export function ReportBuilder() {
                   {/* Last Generated */}
                   {selectedReport.lastGenerated && (
                     <div className="mb-8 pb-8 border-b">
-                      <div className="text-sm font-medium text-gray-600">Last Generated</div>
+                      <div className="text-sm font-medium text-muted-foreground">Last Generated</div>
                       <div className="text-lg">{selectedReport.lastGenerated}</div>
                       {selectedReport.nextRunDate && (
-                        <div className="text-sm text-gray-600 mt-2">
+                        <div className="text-sm text-muted-foreground mt-2">
                           Next run: {selectedReport.nextRunDate}
                         </div>
                       )}
@@ -250,7 +231,7 @@ export function ReportBuilder() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handleGenerateReport(selectedReport.id)}
-                      className="flex-1 bg-blue-800 hover:bg-blue-900"
+                      className="flex-1 bg-brand hover:bg-brand/90"
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Generate Now
@@ -269,7 +250,7 @@ export function ReportBuilder() {
                         setSelectedReportId(null);
                       }}
                       variant="outline"
-                      className="flex-1 text-red-600 hover:text-red-700"
+                      className="flex-1 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete
@@ -278,7 +259,7 @@ export function ReportBuilder() {
                 </Card>
               ) : (
                 <Card className="p-8 flex items-center justify-center min-h-96">
-                  <p className="text-gray-500">Select a report to view details</p>
+                  <p className="text-muted-foreground">Select a report to view details</p>
                 </Card>
               )}
             </div>
@@ -288,7 +269,7 @@ export function ReportBuilder() {
         {/* CREATE TAB */}
         {activeTab === 'create' && (
           <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Create New Report</h2>
+            <h2 className="text-lg font-semibold mb-6">Create New Report</h2>
             <div className="space-y-6">
               <div>
                 <Label className="block mb-2 font-medium">Report Name</Label>
@@ -309,7 +290,7 @@ export function ReportBuilder() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
                   <Label className="block mb-2 font-medium">Report Type</Label>
                   <Select value={formData.type} onValueChange={(value) => 
@@ -367,7 +348,7 @@ export function ReportBuilder() {
               {/* Sections */}
               <div>
                 <Label className="block mb-4 font-medium">Report Sections</Label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {sectionsByType[formData.type].map(section => (
                     <div key={section} className="flex items-center gap-2">
                       <Checkbox
@@ -395,7 +376,7 @@ export function ReportBuilder() {
               <div className="flex gap-3">
                 <Button
                   onClick={handleCreateReport}
-                  className="flex-1 bg-blue-900"
+                  className="flex-1 bg-brand"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create Report
@@ -411,18 +392,18 @@ export function ReportBuilder() {
         {/* HISTORY TAB */}
         {activeTab === 'history' && selectedReport && (
           <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Generation History: {selectedReport.name}</h2>
+            <h2 className="text-lg font-semibold mb-6">Generation History: {selectedReport.name}</h2>
             {selectedReportHistory.length > 0 ? (
               <div className="space-y-3">
                 {selectedReportHistory.map(data => (
                   <div key={data.id} className="flex items-center justify-between p-4 border rounded">
                     <div>
                       <div className="font-medium">{data.fileName}</div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         Generated: {new Date(data.generatedAt).toLocaleString()}
                       </div>
                     </div>
-                    <Button size="sm" className="bg-blue-800 hover:bg-blue-900">
+                    <Button size="sm" className="bg-brand hover:bg-brand/90">
                       <Download className="w-4 h-4 mr-2" />
                       Download
                     </Button>
@@ -430,11 +411,10 @@ export function ReportBuilder() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No reports generated yet</p>
+              <p className="text-muted-foreground">No reports generated yet</p>
             )}
           </Card>
         )}
-      </div>
 
       {/* Create Report Dialog */}
       {showCreateDialog && (
@@ -474,6 +454,6 @@ export function ReportBuilder() {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </>
   );
 }

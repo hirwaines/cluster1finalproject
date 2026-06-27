@@ -1,9 +1,10 @@
-﻿import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { ResearcherLayout } from '../components/ResearcherLayout';
 import { Card } from '../components/ui/card';
+import { StatCard, dashboardStatGridClass, dashboardTwoColGridClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
+import { BarChart3, TrendingUp, Award, Target } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -75,29 +76,21 @@ export function ResearcherAnalyticsPage() {
   const kwFreq = keywordFrequencyFromPublications(user.id, research);
 
   return (
-    <ResearcherLayout>
-      <div className="p-8 max-w-6xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-600">Your research output, citation trends, and departmental benchmarks.</p>
-        </div>
+    <>
+      <div className={`${dashboardStatGridClass} mb-5`}>
+        <StatCard label="Publications" value={user.publications ?? myPubs.length} icon={BarChart3} accent="brand" />
+        <StatCard
+          label="Citations"
+          value={user.citations ?? myPubs.reduce((s, p) => s + p.citations, 0)}
+          icon={TrendingUp}
+          accent="info"
+        />
+        <StatCard label="h-index" value={user.hIndex ?? '—'} icon={Award} accent="dark" />
+        <StatCard label="Research score" value={user.researchScore ?? '—'} icon={Target} accent="brand" />
+      </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Publications', value: user.publications ?? myPubs.length },
-            { label: 'Citations', value: user.citations ?? myPubs.reduce((s, p) => s + p.citations, 0) },
-            { label: 'h-index', value: user.hIndex ?? '—' },
-            { label: 'Research score', value: user.researchScore ?? '—' },
-          ].map(card => (
-            <Card key={card.label} className="p-5 shadow-sm border border-gray-100">
-              <div className="text-sm text-gray-500">{card.label}</div>
-              <div className="text-3xl font-bold text-blue-900 mt-1">{card.value}</div>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="p-6 shadow-sm border border-gray-100">
+      <div className={`${dashboardTwoColGridClass} mb-5`}>
+          <Card className="p-6 shadow-sm border border-border">
             <h2 className="font-semibold mb-4">Publication & citation trends</h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -106,14 +99,14 @@ export function ResearcherAnalyticsPage() {
                   <XAxis dataKey="year" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="pubs" stroke="#1e3a8a" name="Publications" strokeWidth={2} />
+                  <Line type="monotone" dataKey="pubs" stroke="#034ea2" name="Publications" strokeWidth={2} />
                   <Line type="monotone" dataKey="cites" stroke="#64748b" name="Citations" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </Card>
 
-          <Card className="p-6 shadow-sm border border-gray-100">
+          <Card className="p-6 shadow-sm border border-border">
             <h2 className="font-semibold mb-4">Top journals</h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -122,35 +115,35 @@ export function ResearcherAnalyticsPage() {
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="journal" width={120} tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#1e3a8a" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="count" fill="#034ea2" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="p-6 shadow-sm border border-gray-100">
+      <div className={`${dashboardTwoColGridClass} mb-5`}>
+          <Card className="p-6 shadow-sm border border-border">
             <h2 className="font-semibold mb-3">Top collaborators</h2>
             <ul className="space-y-2 text-sm">
               {topCollabs.length ? (
                 topCollabs.map(c => (
-                  <li key={c.name} className="flex justify-between border-b border-gray-100 pb-2">
+                  <li key={c.name} className="flex justify-between border-b border-border pb-2">
                     <span>{c.name}</span>
-                    <span className="text-gray-500">{c.count} shared papers</span>
+                    <span className="text-muted-foreground">{c.count} shared papers</span>
                   </li>
                 ))
               ) : (
-                <li className="text-gray-500">Co-authorship network builds as you add publications.</li>
+                <li className="text-muted-foreground">Co-authorship network builds as you add publications.</li>
               )}
             </ul>
           </Card>
 
-          <Card className="p-6 shadow-sm border border-gray-100">
+          <Card className="p-6 shadow-sm border border-border">
             <h2 className="font-semibold mb-3">Benchmark vs department average</h2>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-200">
+                <tr className="text-left text-muted-foreground border-b border-border">
                   <th className="pb-2">Metric</th>
                   <th className="pb-2">You</th>
                   <th className="pb-2">Dept avg</th>
@@ -174,25 +167,24 @@ export function ResearcherAnalyticsPage() {
                 </tr>
               </tbody>
             </table>
-            <p className="text-xs text-gray-500 mt-3">Department: {user.department || '—'}</p>
+            <p className="text-xs text-muted-foreground mt-3">Department: {user.department || '—'}</p>
           </Card>
         </div>
 
-        <Card className="p-6 shadow-sm border border-gray-100">
+        <Card className="p-6 shadow-sm border border-border">
           <h2 className="font-semibold mb-2">Extracted keyword frequency (from your publications)</h2>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Counts reflect how many of your indexed publications mention each keyword.
           </p>
           <div className="flex flex-wrap gap-2">
             {kwFreq.slice(0, 12).map(k => (
-              <span key={k.keyword} className="px-3 py-1 rounded-full bg-slate-100 text-sm text-gray-800">
+              <span key={k.keyword} className="px-3 py-1 rounded-full bg-slate-100 text-sm text-foreground">
                 {k.keyword}{' '}
-                <span className="text-gray-500">({k.publicationCount} publication{k.publicationCount > 1 ? 's' : ''})</span>
+                <span className="text-muted-foreground">({k.publicationCount} publication{k.publicationCount > 1 ? 's' : ''})</span>
               </span>
             ))}
           </div>
         </Card>
-      </div>
-    </ResearcherLayout>
+    </>
   );
 }

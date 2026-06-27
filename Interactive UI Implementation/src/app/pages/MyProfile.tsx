@@ -1,10 +1,11 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { ResearcherLayout } from '../components/ResearcherLayout';
 import { Card } from '../components/ui/card';
 import { Avatar } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { StatCard, dashboardStatGridClass } from '../components/layout';
+import { usePageHeaderActions } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
 import { Edit, Users, TrendingUp, Award, BookOpen, Calendar, UserPlus, Heart } from 'lucide-react';
@@ -22,27 +23,35 @@ export function MyProfile() {
     }
   }, [user, navigate]);
 
+  const myPublications = user ? research.filter(r => r.researcherId === user.id) : [];
+
+  const headerActions = useMemo(
+    () => (
+      <Button onClick={() => navigate('/settings')}>
+        <Edit className="w-4 h-4 mr-2" />
+        Edit profile
+      </Button>
+    ),
+    [navigate],
+  );
+  usePageHeaderActions(headerActions);
+
   if (!user) {
     return null;
   }
 
-  const myPublications = research.filter(r => r.researcherId === user.id);
-
   return (
-    <ResearcherLayout>
-      <div className="p-8 max-w-6xl mx-auto">
-        {/* Profile Header */}
-        <Card className="p-8 mb-8">
-          <div className="flex items-start gap-6 mb-6">
-            <Avatar className="w-32 h-32 bg-blue-800 flex items-center justify-center text-white font-bold text-5xl">
+    <>
+        <Card className="p-5 sm:p-6 mb-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <Avatar className="w-24 h-24 sm:w-28 sm:h-28 bg-brand flex items-center justify-center text-white font-semibold text-4xl shrink-0">
               {user.name.charAt(0)}
             </Avatar>
 
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h1 className="text-3xl font-bold">{user.name}</h1>
+            <div className="min-w-0 flex-1">
+              <div className="mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h2 className="text-xl font-semibold sm:text-2xl">{user.name}</h2>
                     {user.verified && (
                       <span className="text-emerald-700 text-sm font-semibold">Verified ✓</span>
                     )}
@@ -52,75 +61,54 @@ export function MyProfile() {
                         Accredited
                       </Badge>
                     )}
-                  </div>
-                  <p className="text-xl text-gray-600 mb-2">
-                    {user.position ? `${user.position} • ` : ''}
-                    {user.department && `${user.department} • `}
-                    {user.institution}
-                  </p>
-                  <p className="text-gray-600 max-w-2xl text-sm">
-                    Your expertise profile is derived from your indexed publications.
-                  </p>
                 </div>
-
-                <div className="flex gap-3">
-                  <Button className="bg-blue-900 hover:bg-blue-950" onClick={() => navigate('/settings')}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit profile
-                  </Button>
-                </div>
+                <p className="text-base text-muted-foreground mb-2 sm:text-lg">
+                  {user.position ? `${user.position} • ` : ''}
+                  {user.department && `${user.department} • `}
+                  {user.institution}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Your expertise profile is derived from your indexed publications.
+                </p>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-blue-800 mb-1">{user.publications || 0}</div>
-                  <div className="text-sm text-gray-600">Publications</div>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-1">{user.citations || 0}</div>
-                  <div className="text-sm text-gray-600">Citations</div>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-blue-800 mb-1">{user.hIndex || 0}</div>
-                  <div className="text-sm text-gray-600">h-index</div>
-                </div>
-                <div className="bg-pink-50 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-pink-600 mb-1">0</div>
-                  <div className="text-sm text-gray-600">Followers</div>
-                </div>
+              <div className={dashboardStatGridClass}>
+                <StatCard label="Publications" value={user.publications || 0} icon={BookOpen} accent="brand" />
+                <StatCard label="Citations" value={user.citations || 0} icon={TrendingUp} accent="info" />
+                <StatCard label="h-index" value={user.hIndex || 0} icon={Award} accent="dark" />
+                <StatCard label="Followers" value={0} icon={Heart} accent="brand" />
               </div>
             </div>
           </div>
 
           {/* AI-extracted expertise (read-only) */}
           <div>
-            <div className="text-sm font-semibold text-gray-600 mb-3">RESEARCH EXPERTISE</div>
+            <div className="text-sm font-semibold text-muted-foreground mb-3">RESEARCH EXPERTISE</div>
             <div className="flex flex-wrap gap-2">
               {expertiseFreq.length ? (
                 expertiseFreq.map(({ keyword, publicationCount }) => (
-                  <Badge key={keyword} className="bg-blue-50 text-blue-900 border border-blue-100 px-3 py-1 font-normal">
+                  <Badge key={keyword} className="bg-brand-muted text-brand border border-border px-3 py-1 font-normal">
                     {keyword}{' '}
-                    <span className="text-blue-900/80">
+                    <span className="text-brand/80">
                       (appears in {publicationCount} of your publications)
                     </span>
                   </Badge>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No indexed publications yet — upload works to populate this section.</p>
+                <p className="text-sm text-muted-foreground">No indexed publications yet — upload works to populate this section.</p>
               )}
             </div>
           </div>
         </Card>
 
         {/* Tabs */}
-        <div className="flex gap-6 mb-6 border-b border-gray-200">
+        <div className="flex gap-6 mb-6 border-b border-border">
           <button
             onClick={() => setActiveTab('publications')}
             className={`pb-3 px-2 font-medium transition-all ${
               activeTab === 'publications'
-                ? 'text-blue-800 border-b-2 border-blue-800'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-brand border-b-2 border-brand'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -132,8 +120,8 @@ export function MyProfile() {
             onClick={() => setActiveTab('followers')}
             className={`pb-3 px-2 font-medium transition-all ${
               activeTab === 'followers'
-                ? 'text-blue-800 border-b-2 border-blue-800'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-brand border-b-2 border-brand'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -151,7 +139,7 @@ export function MyProfile() {
                 <Card key={pub.id} className="p-6 hover:shadow-lg transition-all">
                   <div className="flex gap-4">
                     {pub.coverImage && (
-                      <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-32 h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                         <img
                           src={pub.coverImage}
                           alt={pub.title}
@@ -162,17 +150,17 @@ export function MyProfile() {
 
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-xl font-bold text-blue-800">{pub.title}</h3>
+                        <h3 className="text-base font-semibold text-brand">{pub.title}</h3>
                         <Badge className={
-                          pub.fundingStatus === 'funded' ? 'bg-green-100 text-green-700' :
-                          pub.fundingStatus === 'seeking' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-gray-100 text-gray-700'
+                          pub.fundingStatus === 'funded' ? 'bg-success-muted text-success-foreground' :
+                          pub.fundingStatus === 'seeking' ? 'bg-warning-muted text-warning-foreground' :
+                          'bg-muted text-foreground'
                         }>
                           {pub.fundingStatus}
                         </Badge>
                       </div>
 
-                      <p className="text-gray-600 mb-3 line-clamp-2">{pub.abstract}</p>
+                      <p className="text-muted-foreground mb-3 line-clamp-2">{pub.abstract}</p>
 
                       <div className="flex flex-wrap gap-2 mb-3">
                         {pub.keywords.slice(0, 4).map(keyword => (
@@ -182,7 +170,7 @@ export function MyProfile() {
                         ))}
                       </div>
 
-                      <div className="flex items-center gap-6 text-sm text-gray-600">
+                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {pub.publicationDate}
@@ -202,11 +190,11 @@ export function MyProfile() {
               ))
             ) : (
               <Card className="p-12 text-center">
-                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">No publications yet</h3>
-                <p className="text-gray-600 mb-4">Start sharing your research with the community</p>
+                <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="text-base font-semibold mb-2">No publications yet</h3>
+                <p className="text-muted-foreground mb-4">Start sharing your research with the community</p>
                 <Button
-                  className="bg-blue-900 hover:bg-blue-950"
+                  className=""
                   onClick={() => navigate('/researcher/upload')}
                 >
                   Share your first research
@@ -217,16 +205,15 @@ export function MyProfile() {
         )}
 
         {activeTab === 'followers' && (
-          <Card className="p-12 text-center border-2 border-dashed border-gray-200">
-            <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2 text-gray-600">No followers yet</h3>
-            <p className="text-gray-500 text-sm">Share your research to gain followers from the community.</p>
-            <Button className="mt-4 bg-blue-900 hover:bg-blue-950" onClick={() => navigate('/researcher/upload')}>
+          <Card className="p-12 text-center border-2 border-dashed border-border">
+            <UserPlus className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-base font-semibold mb-2 text-muted-foreground">No followers yet</h3>
+            <p className="text-muted-foreground text-sm">Share your research to gain followers from the community.</p>
+            <Button className="mt-4 " onClick={() => navigate('/researcher/upload')}>
               Share research
             </Button>
           </Card>
         )}
-      </div>
-    </ResearcherLayout>
+    </>
   );
 }

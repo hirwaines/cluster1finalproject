@@ -1,12 +1,12 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Brain, ArrowLeft } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { toast } from 'sonner';
 import { Card } from '../components/ui/card';
+import { PageBackHeader } from '../components/layout/PageBackHeader';
 
 export function SignUpFunderPage() {
   const navigate = useNavigate();
@@ -38,29 +38,15 @@ export function SignUpFunderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-blue-900">ResearchIQ</span>
-          </div>
-          <Button variant="ghost" onClick={() => navigate('/signup')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <PageBackHeader backTo="/signup" backLabel="Role selection" title="Funder registration" maxWidth="xl" />
 
       <div className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-2">Funder registration</h1>
-        <p className="text-gray-600 mb-8">
-          External investors register here. Staff roles are not available on this form.
+        <p className="text-muted-foreground mb-8">
+          External investors register here. Staff roles are provisioned by your institution.
         </p>
 
-        <Card className="p-8 shadow-md border border-gray-100">
+        <Card className="p-8 shadow-md border border-border">
           <form onSubmit={submit} className="space-y-5">
             <div>
               <Label>Organization name *</Label>
@@ -100,7 +86,7 @@ export function SignUpFunderPage() {
               <Label>Areas of interest (comma-separated) *</Label>
               <Input value={form.areasOfInterest} onChange={e => setForm(p => ({ ...p, areasOfInterest: e.target.value }))} placeholder="Climate resilience, digital ethics…" required />
             </div>
-            <Button type="submit" className="w-full bg-blue-900 hover:bg-blue-950">Submit for review</Button>
+            <Button type="submit" className="w-full ">Submit for review</Button>
           </form>
         </Card>
       </div>

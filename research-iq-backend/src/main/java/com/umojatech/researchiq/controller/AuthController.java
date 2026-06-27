@@ -60,10 +60,9 @@ public class AuthController {
             Authenticates a user and returns a JWT token.
 
             Admin two-step MFA: the first call (valid email + password, no mfaCode) returns HTTP 200 with
-            `mfaRequired=true` and a null token, and dispatches a 6-digit code. The client then resubmits the
-            same email + password plus `mfaCode` to receive the token. A wrong password returns 401, so the
-            client can distinguish "needs MFA" (200, mfaRequired=true) from "bad credentials" (401).
-            Non-admin users receive the token on the first call (`mfaRequired=false`).""")
+            `mfaRequired=true` and a null token, and dispatches a 6-digit code to the user's email (and logs it
+            in the backend terminal). The client then resubmits the same email + password plus `mfaCode` to
+            receive the token. A wrong password returns 401. Applies to all roles.""")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Authenticated, or mfaRequired=true when an admin must supply a code",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))),

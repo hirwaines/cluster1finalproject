@@ -134,17 +134,13 @@ public class AuthService {
             throw new UnauthorizedException("Your account is pending approval. You will be notified once approved.");
         }
 
-        if (user.getRole() == UserRole.ADMIN) {
-            if (request.getMfaCode() == null || request.getMfaCode().isBlank()) {
-                // Password is valid but a second factor is required. This is NOT an error:
-                // return a 200 response the client can distinguish from bad credentials (401).
-                otpService.sendAdminMfaCode(user.getEmail());
-                auditService.record(user, "LOGIN_MFA_CHALLENGE", "auth", user.getId().toString(), "SUCCESS");
-                return AuthResponse.builder().mfaRequired(true).build();
-            }
-            otpService.verifyAdminMfaCode(user.getEmail(), request.getMfaCode());
-            otpService.invalidateAdminMfaCode(user.getEmail());
+        if (request.getMfaCode() == null || request.getMfaCode().isBlank()) {
+            otpService.sendLoginMfaCode(user.getEmail());
+            auditService.record(user, "LOGIN_MFA_CHALLENGE", "auth", user.getId().toString(), "SUCCESS");
+            return AuthResponse.builder().mfaRequired(true).build();
         }
+        otpService.verifyLoginMfaCode(user.getEmail(), request.getMfaCode());
+        otpService.invalidateLoginMfaCode(user.getEmail());
 
         securityService.recordSession(user, null, null, null);
         auditService.record(user, "LOGIN", "auth", user.getId().toString(), "SUCCESS");

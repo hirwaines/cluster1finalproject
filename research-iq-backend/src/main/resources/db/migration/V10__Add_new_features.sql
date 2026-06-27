@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS collaboration_network (
     shared_keywords TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (researcher1_id) REFERENCES "user"(id) ON DELETE CASCADE,
-    FOREIGN KEY (researcher2_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (researcher1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (researcher2_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_collaboration_network_researcher1 ON collaboration_network(researcher1_id);
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS reports (
     last_generated_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (created_by_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_report_created_by ON reports(created_by_id);
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS report_data (
     file_path VARCHAR(255) NOT NULL,
     generated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
-    FOREIGN KEY (generated_by_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (generated_by_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_report_data_report ON report_data(report_id);
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS dashboards (
     layout VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_dashboard_user ON dashboards(user_id);
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS publication_imports (
     mapping_config TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_publication_import_user ON publication_imports(user_id);

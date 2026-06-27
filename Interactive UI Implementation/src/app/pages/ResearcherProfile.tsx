@@ -25,7 +25,7 @@ export function ResearcherProfile() {
     return (
       <>
         <div className="p-12 text-center">
-          <h2 className="text-xl font-bold mb-2">Researcher not found</h2>
+          <h2 className="text-base font-semibold mb-2">Researcher not found</h2>
           <Button variant="outline" onClick={() => navigate(-1 as any)}>Go back</Button>
         </div>
       </>
@@ -47,7 +47,7 @@ export function ResearcherProfile() {
 
   return (
     <>
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="w-full">
         {/* Back */}
         <button
           onClick={() => navigate(-1 as any)}
@@ -67,7 +67,7 @@ export function ResearcherProfile() {
               <div className="flex items-start justify-between mb-3 flex-wrap gap-3">
                 <div>
                   <div className="flex items-center gap-3 mb-1 flex-wrap">
-                    <h1 className="text-3xl font-bold">{researcher.name}</h1>
+                    <h1 className="text-2xl font-semibold tabular-nums sm:text-3xl">{researcher.name}</h1>
                     {researcher.verified && (
                       <span className="text-emerald-700 text-sm font-semibold">Verified ✓</span>
                     )}
@@ -125,23 +125,23 @@ export function ResearcherProfile() {
               {/* Stats row */}
               <div className="grid grid-cols-5 gap-4">
                 <div className="bg-brand-muted p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-brand">{researcher.publications}</div>
+                  <div className="text-lg font-semibold text-brand">{researcher.publications}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Publications</div>
                 </div>
                 <div className="bg-success-muted/50 p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-success-foreground">{researcher.citations}</div>
+                  <div className="text-lg font-semibold text-success-foreground">{researcher.citations}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Citations</div>
                 </div>
                 <div className="bg-brand-muted p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-brand">{researcher.hIndex}</div>
+                  <div className="text-lg font-semibold text-brand">{researcher.hIndex}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">h-index</div>
                 </div>
                 <div className="bg-purple-50 p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-brand-dark">{researcherPapers.length}</div>
+                  <div className="text-lg font-semibold text-brand-dark">{researcherPapers.length}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Papers here</div>
                 </div>
                 <div className="bg-pink-50 p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-pink-600">{followed ? 1 : 0}</div>
+                  <div className="text-lg font-semibold text-pink-600">{followed ? 1 : 0}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Followers</div>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export function ResearcherProfile() {
                   onClick={() => navigate(`/research/${paper.id}`)}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-bold text-brand hover:underline flex-1 mr-4">{paper.title}</h3>
+                    <h3 className="text-base font-semibold text-brand hover:underline flex-1 mr-4">{paper.title}</h3>
                     <Badge className={
                       paper.fundingStatus === 'funded' ? 'bg-success-muted text-success-foreground shrink-0' :
                       paper.fundingStatus === 'seeking' ? 'bg-warning-muted text-warning-foreground shrink-0' :
@@ -220,9 +220,9 @@ export function ResearcherProfile() {
 
         {/* About tab */}
         {activeTab === 'about' && (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
             <Card className="p-6">
-              <h2 className="font-bold text-lg mb-4">Contact information</h2>
+              <h2 className="font-semibold text-base mb-4">Contact information</h2>
               <div className="space-y-3 text-sm">
                 {researcher.email && (
                   <div className="flex items-center gap-3">
@@ -265,7 +265,7 @@ export function ResearcherProfile() {
             </Card>
 
             <Card className="p-6">
-              <h2 className="font-bold text-lg mb-4">Academic profile</h2>
+              <h2 className="font-semibold text-base mb-4">Academic profile</h2>
               <div className="space-y-3 text-sm">
                 {researcher.position && (
                   <div>

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -38,9 +39,12 @@ public class EmailService {
             helper.setText(buildHtml(purpose, code), true);
             mailSender.send(msg);
             log.info("OTP email sent to {} for {} — code: {}", to, purpose, code);
-        } catch (MessagingException e) {
+        } catch (MailException e) {
             log.error("Failed to send OTP email to {}: {}", to, e.getMessage());
-            log.info("[FALLBACK] {} code for {}: {}", purpose, to, code);
+            log.info("[FALLBACK – use this code in the app] {} code for {}: {}", purpose, to, code);
+        } catch (MessagingException e) {
+            log.error("Failed to build OTP email for {}: {}", to, e.getMessage());
+            log.info("[FALLBACK – use this code in the app] {} code for {}: {}", purpose, to, code);
         }
     }
 

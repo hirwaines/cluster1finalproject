@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { DashboardPageHeader, tabClass, CHART_COLORS } from '../components/layout';
+import { tabClass, CHART_COLORS } from '../components/layout';
+import { usePageHeaderActions, usePageHeaderMeta } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
 import { TrendingUp, Download, BarChart3 } from 'lucide-react';
 import {
@@ -110,21 +111,23 @@ export function ResearchTrends() {
     URL.revokeObjectURL(url);
   };
 
+  usePageHeaderMeta(undefined, `Insights derived from ${research.length} indexed publications`);
+
+  const headerActions = useMemo(
+    () => (
+      <Button variant="outline" onClick={handleExport}>
+        <Download className="w-4 h-4 mr-2" />
+        Export CSV
+      </Button>
+    ),
+    [allKeywordFreq],
+  );
+  usePageHeaderActions(headerActions);
+
   if (!user) return null;
 
   return (
     <>
-      <DashboardPageHeader
-        title="Research Trend Analysis"
-        description={`Insights derived from ${research.length} indexed publications`}
-        actions={
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        }
-      />
-
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[
           { label: 'Total Publications', value: research.length, change: '+8%', color: 'text-brand' },
@@ -133,7 +136,7 @@ export function ResearchTrends() {
           { label: 'Hot Topics', value: hotTopics.length, change: 'This month', color: 'text-warning' },
         ].map(m => (
             <Card key={m.label} className="p-6">
-              <div className={`text-3xl font-bold ${m.color} mb-1`}>{m.value}</div>
+              <div className={`text-2xl font-semibold tabular-nums sm:text-3xl ${m.color} mb-1`}>{m.value}</div>
               <div className="text-sm text-muted-foreground mb-1">{m.label}</div>
               <div className="text-xs text-success font-medium">{m.change}</div>
             </Card>
@@ -164,9 +167,9 @@ export function ResearchTrends() {
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
               <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">Publication Volume Over Time</h3>
+                <h3 className="text-base font-semibold mb-4">Publication Volume Over Time</h3>
                 <ResponsiveContainer width="100%" height={260}>
                   <AreaChart data={pubsByMonth}>
                     <defs>
@@ -185,7 +188,7 @@ export function ResearchTrends() {
               </Card>
 
               <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">Top Research Keywords</h3>
+                <h3 className="text-base font-semibold mb-4">Top Research Keywords</h3>
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={hotTopics} layout="vertical" margin={{ left: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -200,11 +203,11 @@ export function ResearchTrends() {
 
             {/* Funding distribution */}
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Research Funding Status Distribution</h3>
-              <div className="grid grid-cols-3 gap-6">
+              <h3 className="text-base font-semibold mb-4">Research Funding Status Distribution</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {fundingDist.map(f => (
                   <div key={f.status} className="text-center p-6 rounded-xl border border-border">
-                    <div className="text-4xl font-bold mb-2" style={{ color: f.color }}>{f.count}</div>
+                    <div className="text-2xl font-semibold tabular-nums sm:text-3xl mb-2" style={{ color: f.color }}>{f.count}</div>
                     <div className="text-sm text-muted-foreground mb-3">{f.status} Funding</div>
                     <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${research.length ? (f.count / research.length) * 100 : 0}%`, backgroundColor: f.color }} />
@@ -224,7 +227,7 @@ export function ResearchTrends() {
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <BarChart3 className="w-5 h-5 text-warning" />
-                <h3 className="text-xl font-bold">Hot Topics</h3>
+                <h3 className="text-base font-semibold">Hot Topics</h3>
                 <Badge className="bg-warning-muted text-warning-foreground">Detected from publications</Badge>
               </div>
               <div className="space-y-4">
@@ -233,12 +236,12 @@ export function ResearchTrends() {
                   const pct = Math.round((topic.count / maxCount) * 100);
                   return (
                     <div key={topic.keyword} className="flex items-center gap-4 p-4 border border-border rounded-xl hover:border-brand/40 hover:shadow-md transition-all">
-                      <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                      <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
                         {idx + 1}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold">{topic.keyword}</span>
+                          <span className="font-semibold">{topic.keyword}</span>
                           <div className="flex items-center gap-2">
                             <Badge className="bg-success-muted text-success-foreground">
                               <TrendingUp className="w-3 h-3 mr-1" />
@@ -260,7 +263,7 @@ export function ResearchTrends() {
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-success" />
-                <h3 className="text-xl font-bold">Emerging Research Areas</h3>
+                <h3 className="text-base font-semibold">Emerging Research Areas</h3>
                 <Badge className="bg-success-muted text-success-foreground">New in recent publications</Badge>
               </div>
               {emergingTopics.length > 0 ? (
@@ -280,7 +283,7 @@ export function ResearchTrends() {
 
             {/* All keywords */}
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">All Research Keywords ({allKeywordFreq.length})</h3>
+              <h3 className="text-base font-semibold mb-4">All Research Keywords ({allKeywordFreq.length})</h3>
               <div className="flex flex-wrap gap-2">
                 {allKeywordFreq.map(k => (
                   <span
@@ -305,7 +308,7 @@ export function ResearchTrends() {
         {activeTab === 'citations' && (
           <div className="space-y-6">
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Citation Impact Trends</h3>
+              <h3 className="text-base font-semibold mb-4">Citation Impact Trends</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={citationsByMonth}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -318,7 +321,7 @@ export function ResearchTrends() {
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Publication Citation Breakdown</h3>
+              <h3 className="text-base font-semibold mb-4">Publication Citation Breakdown</h3>
               <div className="space-y-4">
                 {research.sort((a, b) => b.citations - a.citations).map(pub => (
                   <div key={pub.id} className="flex items-center gap-4 p-4 border border-border rounded-xl hover:border-brand/40 transition-all">
@@ -332,7 +335,7 @@ export function ResearchTrends() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-2xl font-bold text-success">{pub.citations}</div>
+                      <div className="text-lg font-semibold text-success">{pub.citations}</div>
                       <div className="text-xs text-muted-foreground">citations</div>
                     </div>
                   </div>
@@ -347,7 +350,7 @@ export function ResearchTrends() {
           <div className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-xl font-bold">Publication Trend Forecast</h3>
+                <h3 className="text-base font-semibold">Publication Trend Forecast</h3>
                 <Badge className="bg-brand-muted text-brand">8% monthly growth model</Badge>
               </div>
               <p className="text-sm text-muted-foreground mb-6">
@@ -383,14 +386,14 @@ export function ResearchTrends() {
               </div>
             </Card>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 { label: 'Projected next month', value: forecastData.find(d => d.forecast !== null)?.forecast || 0, unit: 'publications', color: 'text-brand' },
                 { label: 'Projected 3-month total', value: forecastData.filter(d => d.forecast !== null).reduce((s, d) => s + (d.forecast || 0), 0), unit: 'publications', color: 'text-success' },
                 { label: 'Growth confidence', value: '72', unit: '%', color: 'text-brand-dark' },
               ].map(m => (
                 <Card key={m.label} className="p-6 text-center">
-                  <div className={`text-4xl font-bold ${m.color} mb-1`}>{m.value}</div>
+                  <div className={`text-2xl font-semibold tabular-nums sm:text-3xl ${m.color} mb-1`}>{m.value}</div>
                   <div className="text-sm text-muted-foreground">{m.unit}</div>
                   <div className="text-sm font-medium text-foreground mt-2">{m.label}</div>
                 </Card>

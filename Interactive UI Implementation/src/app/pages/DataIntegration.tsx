@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { DashboardPageHeader } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { Database, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -32,26 +31,21 @@ export function DataIntegration() {
 
   return (
     <>
-      <DashboardPageHeader
-        title="Research Data Integration"
-        description="Connect and manage external research data sources"
-      />
-
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="p-6">
-            <div className="text-3xl font-bold text-brand mb-1">6</div>
+            <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-1">6</div>
             <div className="text-sm text-muted-foreground">Connected Sources</div>
           </Card>
           <Card className="p-6">
-            <div className="text-3xl font-bold text-success mb-1">8,079</div>
+            <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-success mb-1">8,079</div>
             <div className="text-sm text-muted-foreground">Total Records</div>
           </Card>
           <Card className="p-6">
-            <div className="text-3xl font-bold text-brand mb-1">5</div>
+            <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-1">5</div>
             <div className="text-sm text-muted-foreground">Active Syncs</div>
           </Card>
           <Card className="p-6">
-            <div className="text-3xl font-bold text-warning mb-1">1</div>
+            <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-warning mb-1">1</div>
             <div className="text-sm text-muted-foreground">Errors</div>
           </Card>
         </div>
@@ -59,7 +53,7 @@ export function DataIntegration() {
         {/* Data Sources */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Data Sources</h2>
+            <h2 className="text-base font-semibold">Data Sources</h2>
             <Button className="bg-brand">
               + Add New Source
             </Button>
@@ -73,15 +67,15 @@ export function DataIntegration() {
                     <Database className="w-6 h-6 text-brand" />
                   </div>
                   <div>
-                    <div className="font-bold">{source.name}</div>
+                    <div className="font-semibold">{source.name}</div>
                     <div className="text-sm text-muted-foreground">{source.type}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">Records</div>
-                    <div className="font-bold">{source.records}</div>
+                    <div className="font-semibold">{source.records}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">Last Sync</div>
@@ -111,7 +105,7 @@ export function DataIntegration() {
 
         {/* Sync History */}
         <Card className="p-6 mt-8">
-          <h2 className="text-xl font-bold mb-6">Recent Sync Activity</h2>
+          <h2 className="text-base font-semibold mb-6">Recent Sync Activity</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">

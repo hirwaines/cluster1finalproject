@@ -26,7 +26,7 @@ export function DashboardHeader({
           <div className="flex items-center gap-3">
             <BrandLogo />
             {title && (
-              <span className="font-display font-semibold text-brand hidden sm:inline">{title}</span>
+              <span className="text-sm font-semibold text-brand hidden sm:inline">{title}</span>
             )}
           </div>
 

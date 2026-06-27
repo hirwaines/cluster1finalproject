@@ -6,7 +6,9 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { StatCard, dashboardStatGridClass, dashboardThreeColGridClass } from '../components/layout';
+import { usePageHeaderActions, usePageHeaderMeta } from '../context/PageHeaderContext';
+import { useDashboardTab } from '../hooks/useDashboardTab';
 import { useApp } from '../context/AppContext';
 import {
   Building2,
@@ -98,11 +100,45 @@ export function FunderDashboard() {
     if (user?.areasOfInterest) setAreasDraft(user.areasOfInterest.join(', '));
   }, [user?.investmentRange, user?.areasOfInterest]);
 
-  if (!user || user.role !== 'funder') {
-    return null;
-  }
+  const org = user?.organizationName || user?.name || '';
 
-  const org = user.organizationName || user.name;
+  const [activeSection, setActiveSection] = useDashboardTab('overview', [
+    'overview',
+    'discover',
+    'portfolio',
+    'rfps',
+  ] as const);
+
+  usePageHeaderMeta(
+    user?.role === 'funder' && activeSection === 'overview' ? `Welcome, ${org}` : undefined,
+    user?.role === 'funder' && activeSection === 'overview'
+      ? 'Discover projects seeking funding and track your expressions of interest.'
+      : undefined,
+  );
+
+  const headerActions = useMemo(
+    () => (
+      <>
+        <Button variant="outline" size="sm" onClick={() => setProfileOpen(true)}>
+          Profile
+        </Button>
+        {(activeSection === 'discover' || activeSection === 'rfps') && (
+          <Button className="bg-brand-dark hover:bg-brand-dark" size="sm" onClick={() => setRfpOpen(true)}>
+            <FilePlus className="w-4 h-4 mr-2" />
+            {activeSection === 'rfps' ? 'Post new opportunity' : 'Submit new RFP'}
+          </Button>
+        )}
+        {activeSection === 'overview' && (
+          <Button className="bg-brand-dark hover:bg-brand-dark" size="sm" onClick={() => { setActiveSection('rfps'); setRfpOpen(true); }}>
+            <FilePlus className="w-4 h-4 mr-2" />
+            Post Opportunity
+          </Button>
+        )}
+      </>
+    ),
+    [activeSection, setActiveSection],
+  );
+  usePageHeaderActions(user?.role === 'funder' ? headerActions : null);
 
   const seeking = useMemo(
     () =>
@@ -117,6 +153,10 @@ export function FunderDashboard() {
     [research, researchers, areaFilter, instFilter, amountFilter]
   );
 
+  if (!user || user.role !== 'funder') {
+    return null;
+  }
+
   const filteredDiscover = seeking.filter(r => {
     const lead = researchers.find(x => x.id === r.researcherId);
     const blob = `${r.title} ${r.abstract} ${lead?.name || ''}`.toLowerCase();
@@ -124,14 +164,6 @@ export function FunderDashboard() {
   });
 
   const myInterests = funderInterests.filter(i => i.funderId === user.id);
-  const [activeSection, setActiveSection] = useState<'overview' | 'discover' | 'portfolio' | 'rfps'>('overview');
-
-  const sectionMeta: Record<typeof activeSection, { title: string; description: string }> = {
-    overview: { title: `Welcome, ${org}`, description: 'Discover projects seeking funding and track your expressions of interest.' },
-    discover: { title: 'Discover Research', description: 'Browse research projects seeking funding across all institutions.' },
-    portfolio: { title: 'My Portfolio', description: 'Track your active expressions of interest and funded projects.' },
-    rfps: { title: 'Post a Funding Opportunity', description: 'Published opportunities appear on the researcher discover page for researchers to apply.' },
-  };
 
   const saveProfile = () => {
     updateFunderProfile({
@@ -160,85 +192,18 @@ export function FunderDashboard() {
     setRfpForm({ title: '', summary: '', amountRange: '', deadline: '' });
   };
 
-  const funderNavItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'discover', label: 'Discover Research', icon: Search },
-    { id: 'portfolio', label: 'My Portfolio', icon: Briefcase },
-    { id: 'rfps', label: 'Post Opportunity', icon: FilePlus },
-  ] as const;
-
   return (
     <>
-      <DashboardPageHeader
-        title={sectionMeta[activeSection].title}
-        description={sectionMeta[activeSection].description}
-        actions={
-          <>
-            <Button variant="outline" size="sm" onClick={() => setProfileOpen(true)}>
-              Profile
-            </Button>
-            {(activeSection === 'discover' || activeSection === 'rfps') && (
-              <Button className="bg-brand-dark hover:bg-brand-dark" size="sm" onClick={() => setRfpOpen(true)}>
-                <FilePlus className="w-4 h-4 mr-2" />
-                {activeSection === 'rfps' ? 'Post new opportunity' : 'Submit new RFP'}
-              </Button>
-            )}
-            {activeSection === 'overview' && (
-              <Button className="bg-brand-dark hover:bg-brand-dark" size="sm" onClick={() => { setActiveSection('rfps'); setRfpOpen(true); }}>
-                <FilePlus className="w-4 h-4 mr-2" />
-                Post Opportunity
-              </Button>
-            )}
-          </>
-        }
-      />
-
-      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
-        {funderNavItems.map(item => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setActiveSection(item.id)}
-              className={tabClass(activeSection === item.id)}
-            >
-              <Icon className="w-4 h-4" />
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
-
           {activeSection === 'overview' && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-3 gap-6">
-                <Card className="p-6 shadow-sm border border-border">
-                  <div className="flex items-center gap-3 mb-2">
-                    <DollarSign className="w-5 h-5 text-brand-dark" />
-                    <span className="text-sm font-medium text-muted-foreground">Active investments</span>
-                  </div>
-                  <div className="text-3xl font-bold">{myInterests.filter(i => i.status === 'funded').length}</div>
-                </Card>
-                <Card className="p-6 shadow-sm border border-border">
-                  <div className="flex items-center gap-3 mb-2">
-                    <FilePlus className="w-5 h-5 text-brand-dark" />
-                    <span className="text-sm font-medium text-muted-foreground">Proposals reviewed</span>
-                  </div>
-                  <div className="text-3xl font-bold">12</div>
-                  <p className="text-xs text-muted-foreground mt-1">This quarter</p>
-                </Card>
-                <Card className="p-6 shadow-sm border border-border">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-5 h-5 text-brand-dark" />
-                    <span className="text-sm font-medium text-muted-foreground">Matching researchers</span>
-                  </div>
-                  <div className="text-3xl font-bold">{researchers.filter(r => r.role === 'researcher').length}</div>
-                </Card>
+            <div className="space-y-5">
+              <div className={dashboardThreeColGridClass}>
+                <StatCard label="Active investments" value={myInterests.filter(i => i.status === 'funded').length} icon={DollarSign} accent="brand" />
+                <StatCard label="Proposals reviewed" value={12} icon={FilePlus} accent="info" hint="This quarter" />
+                <StatCard label="Matching researchers" value={researchers.filter(r => r.role === 'researcher').length} icon={TrendingUp} accent="dark" />
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">Matched to your interests</h2>
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Matched to your interests</h2>
                 <div className="grid gap-4">
                   {MATCH_ROWS.map(row => (
                     <Card key={row.projectId} className="p-6 shadow-sm border border-border">
@@ -253,7 +218,7 @@ export function FunderDashboard() {
                         </div>
                         <div className="text-right">
                           <div className="text-sm text-muted-foreground">Funding needed</div>
-                          <div className="text-xl font-bold mb-2">{row.funding}</div>
+                          <div className="text-base font-semibold mb-2">{row.funding}</div>
                           <Button className="bg-brand-dark hover:bg-brand-dark" onClick={() => { expressFundingInterest(row.projectId); toast.success('Interest sent to the programme office.'); }}>
                             Express interest
                           </Button>
@@ -271,12 +236,12 @@ export function FunderDashboard() {
             <div className="space-y-6">
               <Card className="p-4 shadow-sm border border-border">
                 <div className="flex flex-wrap gap-3 items-center">
-                  <div className="flex-1 min-w-[200px] relative">
+                  <div className="flex-1 min-w-0 sm:min-w-[200px] relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
                     <Input className="pl-9" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} />
                   </div>
                   <Select value={areaFilter} onValueChange={setAreaFilter}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px]">
                       <Filter className="w-4 h-4 mr-2 shrink-0" />
                       <SelectValue placeholder="Research area" />
                     </SelectTrigger>
@@ -290,7 +255,7 @@ export function FunderDashboard() {
                     </SelectContent>
                   </Select>
                   <Select value={instFilter} onValueChange={setInstFilter}>
-                    <SelectTrigger className="w-[160px]">
+                    <SelectTrigger className="w-full sm:w-[160px]">
                       <Building2 className="w-4 h-4 mr-2 shrink-0" />
                       <SelectValue placeholder="Institution" />
                     </SelectTrigger>
@@ -300,7 +265,7 @@ export function FunderDashboard() {
                     </SelectContent>
                   </Select>
                   <Select value={amountFilter} onValueChange={setAmountFilter}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Funding needed" />
                     </SelectTrigger>
                     <SelectContent>
@@ -329,7 +294,7 @@ export function FunderDashboard() {
                         </div>
                         <div className="text-right space-y-2 min-w-[140px]">
                           <div className="text-sm text-muted-foreground">Funding sought</div>
-                          <div className="text-xl font-bold">{proj.fundingAmountNeeded || '—'}</div>
+                          <div className="text-base font-semibold">{proj.fundingAmountNeeded || '—'}</div>
                           <Button className="w-full bg-brand-dark hover:bg-brand-dark" onClick={() => { expressFundingInterest(proj.id); toast.success('Interest recorded. The research office will connect you with the lead.'); }}>
                             Express interest
                           </Button>
@@ -454,7 +419,7 @@ export function FunderDashboard() {
                 onChange={e => setRfpForm(p => ({ ...p, summary: e.target.value }))}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label>Amount range</Label>
                 <Input

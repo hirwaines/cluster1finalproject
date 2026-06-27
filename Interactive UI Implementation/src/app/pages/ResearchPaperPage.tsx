@@ -41,7 +41,7 @@ export function ResearchPaperPage() {
       <>
         <div className="p-12 text-center">
           <FileText className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Paper not found</h2>
+          <h2 className="text-base font-semibold mb-2">Paper not found</h2>
           <Button variant="outline" onClick={() => navigate(-1 as any)}>Go back</Button>
         </div>
       </>
@@ -97,7 +97,7 @@ export function ResearchPaperPage() {
 
   return (
     <>
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="w-full">
 
         {/* Back */}
         <button
@@ -118,7 +118,7 @@ export function ResearchPaperPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl font-bold text-foreground leading-snug mb-4">{paper.title}</h1>
+            <h1 className="text-2xl font-semibold tabular-nums sm:text-3xl text-foreground leading-snug mb-4">{paper.title}</h1>
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2 mb-6">
@@ -163,7 +163,7 @@ export function ResearchPaperPage() {
                 </Avatar>
                 <div className="flex-1">
                   <div
-                    className="font-bold text-brand cursor-pointer hover:underline"
+                    className="font-semibold text-brand cursor-pointer hover:underline"
                     onClick={() => navigate(`/researcher/profile/${author.id}`)}
                   >
                     {author.name}
@@ -185,7 +185,7 @@ export function ResearchPaperPage() {
             <div className="space-y-8">
               {sections.map(section => (
                 <section key={section.heading}>
-                  <h2 className="text-xl font-bold text-foreground mb-3 pb-1 border-b border-border">{section.heading}</h2>
+                  <h2 className="text-base font-semibold text-foreground mb-3 pb-1 border-b border-border">{section.heading}</h2>
                   <p className="text-foreground leading-relaxed">{section.content}</p>
                 </section>
               ))}
@@ -193,7 +193,7 @@ export function ResearchPaperPage() {
               {/* Authors list */}
               {paper.authors && paper.authors.length > 0 && (
                 <section>
-                  <h2 className="text-xl font-bold text-foreground mb-3 pb-1 border-b border-border">Authors</h2>
+                  <h2 className="text-base font-semibold text-foreground mb-3 pb-1 border-b border-border">Authors</h2>
                   <div className="flex flex-wrap gap-2">
                     {paper.authors.map(a => (
                       <Badge key={a} variant="outline">{a}</Badge>
@@ -204,7 +204,7 @@ export function ResearchPaperPage() {
 
               {/* References placeholder */}
               <section>
-                <h2 className="text-xl font-bold text-foreground mb-3 pb-1 border-b border-border">References</h2>
+                <h2 className="text-base font-semibold text-foreground mb-3 pb-1 border-b border-border">References</h2>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>[1] Kagame, P. et al. (2023). Institutional Research Capacity in Rwanda. <em>African Journal of Higher Education</em>, 12(4), 45–62.</p>
                   <p>[2] Nkurunziza, A. & Mwangi, K. (2022). East African Research Collaboration Frameworks. <em>Research Policy</em>, 51(3), 104–118.</p>
@@ -215,7 +215,7 @@ export function ResearchPaperPage() {
 
             {/* ── Comments ── */}
             <div className="mt-12 pt-8 border-t border-border">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="text-base font-semibold mb-6 flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-brand" />
                 Comments ({comments.length})
               </h2>
@@ -289,19 +289,19 @@ export function ResearchPaperPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Citations</span>
-                  <span className="font-bold text-brand">{paper.citations}</span>
+                  <span className="font-semibold text-brand">{paper.citations}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Likes</span>
-                  <span className="font-bold">{(paper.likes || 0) + (liked ? 1 : 0)}</span>
+                  <span className="font-semibold">{(paper.likes || 0) + (liked ? 1 : 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shares</span>
-                  <span className="font-bold">{paper.shares || 0}</span>
+                  <span className="font-semibold">{paper.shares || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Comments</span>
-                  <span className="font-bold">{comments.length}</span>
+                  <span className="font-semibold">{comments.length}</span>
                 </div>
               </div>
             </Card>
@@ -313,7 +313,7 @@ export function ResearchPaperPage() {
                 className="flex items-center gap-3 mb-3 cursor-pointer"
                 onClick={() => navigate(`/researcher/profile/${author.id}`)}
               >
-                <Avatar className="w-10 h-10 bg-brand flex items-center justify-center text-white font-bold">
+                <Avatar className="w-10 h-10 bg-brand flex items-center justify-center text-white font-semibold">
                   {author.name.charAt(0)}
                 </Avatar>
                 <div>

@@ -88,71 +88,61 @@ export function FeedPage() {
 
   return (
     <>
-    <div className="flex">
-        {/* ── Main area ── */}
-        <div className="flex-1 min-w-0 p-6">
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search by title, keyword, abstract…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          className="h-9 border-border/80 bg-card pl-9 text-sm"
+        />
+      </div>
 
-          {/* Header + search */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-1">Research Feed</h1>
-            <p className="text-muted-foreground text-sm mb-4">Discover, search, and engage with the latest research</p>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex rounded-md border border-border bg-muted/50 p-0.5">
+          <button
+            type="button"
+            onClick={() => setView('feed')}
+            className={`rounded px-3 py-1 text-xs font-medium transition-colors ${view === 'feed' ? 'bg-card text-brand shadow-sm' : 'text-muted-foreground'}`}
+          >
+            Feed
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('discover')}
+            className={`rounded px-3 py-1 text-xs font-medium transition-colors ${view === 'discover' ? 'bg-card text-brand shadow-sm' : 'text-muted-foreground'}`}
+          >
+            Discover
+          </button>
+        </div>
+        <span className="text-xs text-muted-foreground">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+      </div>
 
-            {/* Search bar */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70" />
-              <Input
-                placeholder="Search by title, keyword, abstract…"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="pl-10 bg-white border-border"
-              />
-            </div>
+      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setCategory(cat)}
+            className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+              category === cat
+                ? 'border-brand bg-brand text-white'
+                : 'border-border bg-card text-foreground hover:border-brand/30'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
-            {/* View tabs */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex bg-muted rounded-lg p-1">
-                <button
-                  onClick={() => setView('feed')}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'feed' ? 'bg-white shadow-sm text-brand' : 'text-muted-foreground'}`}
-                >
-                  Feed
-                </button>
-                <button
-                  onClick={() => setView('discover')}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'discover' ? 'bg-white shadow-sm text-brand' : 'text-muted-foreground'}`}
-                >
-                  Discover
-                </button>
-              </div>
-              <span className="text-sm text-muted-foreground/70">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
-            </div>
+      {view === 'feed' && (
+        <div className="mb-4">
+          <SystemAnnouncements limit={2} />
+        </div>
+      )}
 
-            {/* Category pills */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
-                    category === cat
-                      ? 'bg-brand text-white border-brand'
-                      : 'bg-white text-foreground border-border hover:border-brand/40'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* System announcements (feed view only) */}
-          {view === 'feed' && (
-            <div className="mb-6">
-              <SystemAnnouncements limit={2} />
-            </div>
-          )}
-
-          {/* Posts */}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="min-w-0 flex-1">
           {filtered.length === 0 ? (
             <Card className="p-12 text-center border border-dashed border-border">
               <BookOpen className="w-14 h-14 text-muted-foreground/30 mx-auto mb-3" />
@@ -161,7 +151,7 @@ export function FeedPage() {
             </Card>
           ) : view === 'feed' ? (
             /* ── Feed view (single column) ── */
-            <div className="space-y-6 max-w-2xl">
+            <div className="space-y-4 w-full">
               {filtered.map(post => {
                 const postAuthor = researchers.find(r => r.id === post.researcherId);
                 const isLiked = likedPosts.has(post.id);
@@ -196,7 +186,7 @@ export function FeedPage() {
                     {/* Content */}
                     <div className="px-4 pb-4">
                       <h3
-                        className="text-lg font-bold text-brand mb-2 cursor-pointer hover:underline"
+                        className="text-base font-semibold text-brand mb-2 cursor-pointer hover:underline"
                         onClick={() => navigate(`/research/${post.id}`)}
                       >
                         {post.title}
@@ -238,7 +228,7 @@ export function FeedPage() {
             </div>
           ) : (
             /* ── Discover view (2-column grid) ── */
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {filtered.map(post => {
                 const postAuthor = researchers.find(r => r.id === post.researcherId);
                 const isLiked = likedPosts.has(post.id);
@@ -260,7 +250,7 @@ export function FeedPage() {
                     </div>
                     <div className="p-4">
                       <h3
-                        className="font-bold text-brand mb-2 line-clamp-2 cursor-pointer hover:underline text-sm"
+                        className="font-semibold text-brand mb-2 line-clamp-2 cursor-pointer hover:underline text-sm"
                         onClick={() => navigate(`/research/${post.id}`)}
                       >
                         {post.title}
@@ -297,7 +287,7 @@ export function FeedPage() {
         </div>
 
         {/* ── Right sidebar ── */}
-        <aside className="w-72 p-6 space-y-5 sticky top-[65px] self-start shrink-0">
+        <aside className="hidden w-56 shrink-0 space-y-3 lg:block">
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-success" />

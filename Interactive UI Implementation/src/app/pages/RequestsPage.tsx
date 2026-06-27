@@ -85,12 +85,7 @@ export function RequestsPage() {
   const activeList = mainTab === 'incoming' ? filteredIncoming : filteredSent;
 
   return (
-      <div className="p-8 max-w-5xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Requests & Applications</h1>
-          <p className="text-muted-foreground">Track incoming collaboration requests and your submitted funding applications</p>
-        </div>
-
+    <>
         {/* Main tabs */}
         <div className="flex gap-2 mb-6 border-b border-border">
           <button
@@ -152,7 +147,7 @@ export function RequestsPage() {
           {activeList.length === 0 ? (
             <Card className="p-12 text-center border border-dashed border-border">
               <FileText className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-muted-foreground mb-2">
+              <h3 className="text-base font-semibold text-muted-foreground mb-2">
                 {mainTab === 'sent' ? 'No applications submitted yet' : 'No requests found'}
               </h3>
               <p className="text-muted-foreground text-sm">
@@ -181,7 +176,7 @@ export function RequestsPage() {
                   request.status === 'rejected' ? 'border-l-red-400' :
                   'border-l-yellow-400'
                 }`}>
-                  <div className="flex gap-5">
+                  <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
                     <Avatar className="w-14 h-14 bg-brand flex items-center justify-center text-white font-bold text-xl shrink-0">
                       {displayName.charAt(0)}
                     </Avatar>
@@ -191,7 +186,7 @@ export function RequestsPage() {
                       <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-lg font-bold">{displayName}</h3>
+                            <h3 className="text-base font-semibold">{displayName}</h3>
                             {statusBadge(request.status)}
                             <Badge className={isFunding ? 'bg-success-muted/50 text-success-foreground border border-green-200' : 'bg-brand-muted text-brand border border-border'}>
                               {isFunding ? <DollarSign className="w-3 h-3 mr-1" /> : <Users className="w-3 h-3 mr-1" />}
@@ -283,6 +278,6 @@ export function RequestsPage() {
             })
           )}
         </div>
-      </div>
+    </>
   );
 }

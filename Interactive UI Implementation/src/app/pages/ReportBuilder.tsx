@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -7,7 +7,8 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Checkbox } from '../components/ui/checkbox';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { tabClass } from '../components/layout';
+import { usePageHeaderActions } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
 import { Plus, Trash2, Download, Clock } from 'lucide-react';
 import {
@@ -54,6 +55,17 @@ export function ReportBuilder() {
       navigate('/login');
     }
   }, [user, navigate]);
+
+  const headerActions = useMemo(
+    () => (
+      <Button onClick={() => setShowCreateDialog(true)}>
+        <Plus className="w-4 h-4 mr-2" />
+        Create Report
+      </Button>
+    ),
+    [],
+  );
+  usePageHeaderActions(headerActions);
 
   if (!user || !['admin', 'manager'].includes(user.role)) {
     return null;
@@ -106,17 +118,6 @@ export function ReportBuilder() {
 
   return (
     <>
-      <DashboardPageHeader
-        title="Report Builder"
-        description="Create, manage, and schedule research reports"
-        actions={
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Report
-          </Button>
-        }
-      />
-
       <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
         {([
           { id: 'list' as const, label: 'My Reports' },
@@ -136,11 +137,11 @@ export function ReportBuilder() {
 
         {/* LIST TAB */}
         {activeTab === 'list' && (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* Report List */}
             <div className="col-span-1">
               <Card className="p-6 sticky top-20">
-                <h3 className="font-bold text-lg mb-4">Reports ({userReports.length})</h3>
+                <h3 className="font-semibold text-base mb-4">Reports ({userReports.length})</h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {userReports.map(report => (
                     <Card
@@ -169,7 +170,7 @@ export function ReportBuilder() {
                 <Card className="p-8">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold mb-2">{selectedReport.name}</h2>
+                      <h2 className="text-lg font-semibold mb-2">{selectedReport.name}</h2>
                       <p className="text-muted-foreground">{selectedReport.description}</p>
                     </div>
                     <Badge className={`${
@@ -203,7 +204,7 @@ export function ReportBuilder() {
 
                   {/* Sections */}
                   <div className="mb-8 pb-8 border-b">
-                    <h3 className="font-bold mb-4">Report Sections</h3>
+                    <h3 className="font-semibold mb-4">Report Sections</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedReport.sections.map(section => (
                         <Badge key={section} className="bg-brand-muted text-brand">
@@ -268,7 +269,7 @@ export function ReportBuilder() {
         {/* CREATE TAB */}
         {activeTab === 'create' && (
           <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Create New Report</h2>
+            <h2 className="text-lg font-semibold mb-6">Create New Report</h2>
             <div className="space-y-6">
               <div>
                 <Label className="block mb-2 font-medium">Report Name</Label>
@@ -289,7 +290,7 @@ export function ReportBuilder() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
                   <Label className="block mb-2 font-medium">Report Type</Label>
                   <Select value={formData.type} onValueChange={(value) => 
@@ -347,7 +348,7 @@ export function ReportBuilder() {
               {/* Sections */}
               <div>
                 <Label className="block mb-4 font-medium">Report Sections</Label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {sectionsByType[formData.type].map(section => (
                     <div key={section} className="flex items-center gap-2">
                       <Checkbox
@@ -391,7 +392,7 @@ export function ReportBuilder() {
         {/* HISTORY TAB */}
         {activeTab === 'history' && selectedReport && (
           <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Generation History: {selectedReport.name}</h2>
+            <h2 className="text-lg font-semibold mb-6">Generation History: {selectedReport.name}</h2>
             {selectedReportHistory.length > 0 ? (
               <div className="space-y-3">
                 {selectedReportHistory.map(data => (

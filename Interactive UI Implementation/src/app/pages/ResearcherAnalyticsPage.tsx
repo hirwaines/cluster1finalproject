@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Card } from '../components/ui/card';
+import { StatCard, dashboardStatGridClass, dashboardTwoColGridClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
+import { BarChart3, TrendingUp, Award, Target } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -74,27 +76,20 @@ export function ResearcherAnalyticsPage() {
   const kwFreq = keywordFrequencyFromPublications(user.id, research);
 
   return (
-      <div className="p-8 max-w-6xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Analytics</h1>
-          <p className="text-muted-foreground">Your research output, citation trends, and departmental benchmarks.</p>
-        </div>
+    <>
+      <div className={`${dashboardStatGridClass} mb-5`}>
+        <StatCard label="Publications" value={user.publications ?? myPubs.length} icon={BarChart3} accent="brand" />
+        <StatCard
+          label="Citations"
+          value={user.citations ?? myPubs.reduce((s, p) => s + p.citations, 0)}
+          icon={TrendingUp}
+          accent="info"
+        />
+        <StatCard label="h-index" value={user.hIndex ?? '—'} icon={Award} accent="dark" />
+        <StatCard label="Research score" value={user.researchScore ?? '—'} icon={Target} accent="brand" />
+      </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Publications', value: user.publications ?? myPubs.length },
-            { label: 'Citations', value: user.citations ?? myPubs.reduce((s, p) => s + p.citations, 0) },
-            { label: 'h-index', value: user.hIndex ?? '—' },
-            { label: 'Research score', value: user.researchScore ?? '—' },
-          ].map(card => (
-            <Card key={card.label} className="p-5 shadow-sm border border-border">
-              <div className="text-sm text-muted-foreground">{card.label}</div>
-              <div className="text-3xl font-bold text-brand mt-1">{card.value}</div>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
+      <div className={`${dashboardTwoColGridClass} mb-5`}>
           <Card className="p-6 shadow-sm border border-border">
             <h2 className="font-semibold mb-4">Publication & citation trends</h2>
             <div className="h-64">
@@ -127,7 +122,7 @@ export function ResearcherAnalyticsPage() {
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+      <div className={`${dashboardTwoColGridClass} mb-5`}>
           <Card className="p-6 shadow-sm border border-border">
             <h2 className="font-semibold mb-3">Top collaborators</h2>
             <ul className="space-y-2 text-sm">
@@ -190,6 +185,6 @@ export function ResearcherAnalyticsPage() {
             ))}
           </div>
         </Card>
-      </div>
+    </>
   );
 }

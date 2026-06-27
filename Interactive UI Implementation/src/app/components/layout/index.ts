@@ -4,6 +4,9 @@ export { DashboardHeader } from './DashboardHeader';
 export { DashboardShell } from './DashboardShell';
 export type { DashboardNavItem, DashboardNavSection } from './DashboardShell';
 export { DashboardPageHeader } from './DashboardPageHeader';
+export { ShellPageHeader } from './ShellPageHeader';
+export { resolvePageMeta, roleWorkspaceLabel, findActiveNavLink } from './pageMeta';
+export type { PageMeta } from './pageMeta';
 export { PageHeader } from './PageHeader';
 export { StatCard } from './StatCard';
 export {
@@ -19,7 +22,15 @@ export {
   dashboardPageSubtitleClass,
   dashboardGridClass,
   dashboardFormSectionClass,
-  dashboardInlineErrorClass,
+  dashboardStatGridClass,
+  dashboardSectionHeadingClass,
+  dashboardCardTitleClass,
+  dashboardMetricClass,
+  dashboardTwoColGridClass,
+  dashboardThreeColGridClass,
+  dashboardFormGridClass,
+  dashboardMainAsideClass,
+  dashboardChartRowClass,
 } from './dashboardStyles';
 export {
   marketingNavClass,

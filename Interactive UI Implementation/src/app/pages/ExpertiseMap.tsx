@@ -4,7 +4,8 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import { DashboardPageHeader, tabClass, CHART_COLORS } from '../components/layout';
+import { tabClass, CHART_COLORS } from '../components/layout';
+import { usePageHeaderActions, usePageHeaderMeta } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
 import {
@@ -131,23 +132,28 @@ export function ExpertiseMap() {
     URL.revokeObjectURL(url);
   };
 
-  if (!user) return null;
-
   const researcherCount = researchers.filter(r => r.role === 'researcher').length;
+
+  usePageHeaderMeta(
+    undefined,
+    `Expertise derived from ${research.length} indexed publications across ${researcherCount} researchers`,
+  );
+
+  const headerActions = useMemo(
+    () => (
+      <Button variant="outline" onClick={handleExport}>
+        <Download className="w-4 h-4 mr-2" />
+        Export CSV
+      </Button>
+    ),
+    [expertiseAreas],
+  );
+  usePageHeaderActions(headerActions);
+
+  if (!user) return null;
 
   return (
     <>
-      <DashboardPageHeader
-        title="Institutional Expertise Map"
-        description={`Expertise derived from ${research.length} indexed publications across ${researcherCount} researchers`}
-        actions={
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        }
-      />
-
       <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
         {tabItems.map(item => {
           const Icon = item.icon;
@@ -172,7 +178,7 @@ export function ExpertiseMap() {
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-brand-muted rounded-xl"><Users className="w-6 h-6 text-brand" /></div>
                 <div>
-                  <div className="text-3xl font-bold text-brand">{researcherCount}</div>
+                  <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand">{researcherCount}</div>
                   <div className="text-sm text-muted-foreground">Researchers Mapped</div>
                 </div>
               </div>
@@ -181,7 +187,7 @@ export function ExpertiseMap() {
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-success-muted rounded-xl"><Target className="w-6 h-6 text-success" /></div>
                 <div>
-                  <div className="text-3xl font-bold text-success">{expertiseAreas.length}</div>
+                  <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-success">{expertiseAreas.length}</div>
                   <div className="text-sm text-muted-foreground">Expertise Keywords</div>
                 </div>
               </div>
@@ -190,7 +196,7 @@ export function ExpertiseMap() {
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-brand-muted rounded-xl"><BarChart3 className="w-6 h-6 text-brand-dark" /></div>
                 <div>
-                  <div className="text-3xl font-bold text-brand-dark">{research.length}</div>
+                  <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand-dark">{research.length}</div>
                   <div className="text-sm text-muted-foreground">Publications Indexed</div>
                 </div>
               </div>
@@ -198,7 +204,7 @@ export function ExpertiseMap() {
           </div>
 
           <Card className="p-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-brand" /> Top Expertise Areas
             </h3>
             <ResponsiveContainer width="100%" height={260}>
@@ -213,7 +219,7 @@ export function ExpertiseMap() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
               <Users className="w-5 h-5 text-success" /> Department Distribution
             </h3>
             <div className="space-y-4">
@@ -250,7 +256,7 @@ export function ExpertiseMap() {
                   className={`p-6 bg-card border border-border rounded-xl ${item.hover} hover:shadow-md transition-all text-left`}
                 >
                   <Icon className={`w-8 h-8 ${item.iconClass} mb-3`} />
-                  <div className="font-bold mb-1">{item.title}</div>
+                  <div className="font-semibold mb-1">{item.title}</div>
                   <div className="text-sm text-muted-foreground">{item.desc}</div>
                 </button>
               );
@@ -262,7 +268,7 @@ export function ExpertiseMap() {
       {activeTab === 'heatmap' && (
         <div className="space-y-8">
           <Card className="p-8">
-            <h3 className="text-xl font-bold mb-6">Expertise Density Heatmap</h3>
+            <h3 className="text-base font-semibold mb-6">Expertise Density Heatmap</h3>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {expertiseAreas.map(area => {
                 const maxCount = expertiseAreas[0]?.expertCount || 1;
@@ -275,7 +281,7 @@ export function ExpertiseMap() {
                     className={`aspect-square rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:scale-105 border-2 ${selectedKeyword === area.keyword ? 'border-brand ring-2 ring-brand' : 'border-transparent'}`}
                     style={{ backgroundColor: `rgba(${BRAND_RGB},${0.15 + intensity * 0.75})` }}
                   >
-                    <div className={`font-bold text-lg mb-1 ${intensity > 0.5 ? 'text-white' : 'text-brand'}`}>
+                    <div className={`font-semibold text-base mb-1 ${intensity > 0.5 ? 'text-white' : 'text-brand'}`}>
                       {area.expertCount}
                     </div>
                     <div className={`text-xs leading-tight ${intensity > 0.5 ? 'text-white/90' : 'text-brand'}`}>
@@ -294,7 +300,7 @@ export function ExpertiseMap() {
 
           {selectedKeyword && selectedExperts.length > 0 && (
             <Card className="p-6">
-              <h3 className="text-lg font-bold mb-4">Experts in: <span className="text-brand">{selectedKeyword}</span></h3>
+              <h3 className="text-base font-semibold mb-4">Experts in: <span className="text-brand">{selectedKeyword}</span></h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {selectedExperts.map(e => (
                   <button
@@ -317,7 +323,7 @@ export function ExpertiseMap() {
       {activeTab === 'experts' && (
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-4">Find Experts by Research Area</h3>
+            <h3 className="text-base font-semibold mb-4">Find Experts by Research Area</h3>
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70" />
               <Input
@@ -351,11 +357,11 @@ export function ExpertiseMap() {
                   {expertSearchResults.map(({ researcher: r, keywords, matchedKw }) => (
                     <Card key={r.id} className="p-5 hover:shadow-lg transition-all border border-border">
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
+                        <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center text-white font-semibold text-base shrink-0">
                           {r.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold truncate">{r.name}</div>
+                          <div className="font-semibold truncate">{r.name}</div>
                           <div className="text-sm text-muted-foreground">{r.department} · {r.institution}</div>
                           <Badge className="mt-1 bg-success-muted text-success-foreground text-xs">Matched: {matchedKw}</Badge>
                         </div>
@@ -391,7 +397,7 @@ export function ExpertiseMap() {
       {activeTab === 'similarity' && (
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-2">Researcher Expertise Similarity</h3>
+            <h3 className="text-base font-semibold mb-2">Researcher Expertise Similarity</h3>
             <p className="text-sm text-muted-foreground mb-6">Pairs ranked by shared publication keywords — higher score = stronger expertise overlap.</p>
             {similarityPairs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
@@ -404,7 +410,7 @@ export function ExpertiseMap() {
                   <div key={idx} className="p-5 border border-border rounded-xl hover:border-brand/40 hover:shadow-md transition-all">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
                           {idx + 1}
                         </div>
                         <div>
@@ -414,7 +420,7 @@ export function ExpertiseMap() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-brand">{pair.score}%</div>
+                        <div className="text-lg font-semibold text-brand">{pair.score}%</div>
                         <div className="text-xs text-muted-foreground">similarity</div>
                       </div>
                     </div>
@@ -438,7 +444,7 @@ export function ExpertiseMap() {
       {activeTab === 'trends' && (
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-2">Expertise Growth Trends</h3>
+            <h3 className="text-base font-semibold mb-2">Expertise Growth Trends</h3>
             <p className="text-sm text-muted-foreground mb-6">Researcher count per expertise area over time (derived from publication dates).</p>
             {expertiseAreas.length > 0 ? (
               <ResponsiveContainer width="100%" height={320}>
@@ -462,7 +468,7 @@ export function ExpertiseMap() {
               <Card key={area.keyword} className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <div className="font-bold mb-1">{area.keyword}</div>
+                    <div className="font-semibold mb-1">{area.keyword}</div>
                     <div className="text-sm text-muted-foreground">{area.expertCount} expert{area.expertCount > 1 ? 's' : ''}</div>
                   </div>
                   <Badge className="bg-success-muted text-success-foreground text-xs">

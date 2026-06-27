@@ -58,7 +58,7 @@ export function PageBackHeader({
             {showLogo && <BrandLogo size="sm" className="hidden sm:flex shrink-0" />}
             {title && (
               <div className="min-w-0">
-                <h1 className="font-display text-lg font-normal text-foreground truncate">{title}</h1>
+                <h1 className="text-lg font-semibold text-foreground truncate">{title}</h1>
                 {subtitle && <p className="text-sm text-muted-foreground truncate">{subtitle}</p>}
               </div>
             )}

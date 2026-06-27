@@ -35,7 +35,7 @@ export function NotificationDropdown() {
       case 'collaboration':
         return <Users className="w-5 h-5 text-brand" />;
       case 'funding':
-        return <DollarSign className="w-5 h-5 text-success" />;
+        return <DollarSign className="w-5 h-5 text-brand" />;
       case 'publication':
         return <FileText className="w-5 h-5 text-purple-600" />;
       case 'citation':

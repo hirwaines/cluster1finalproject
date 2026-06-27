@@ -8,7 +8,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Switch } from '../components/ui/switch';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { tabClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
 import { DollarSign, Clock, Target, Bell, BellOff, CheckCircle, Trophy } from 'lucide-react';
@@ -104,11 +104,6 @@ export function FundingOpportunities() {
 
   return (
     <>
-      <DashboardPageHeader
-        title="Funding Opportunities"
-        description="Grant recommendations matched to your publication keywords"
-      />
-
       {/* Smart match banner */}
         <Card className="p-6 mb-8 bg-brand text-white">
           <div className="flex items-center gap-4">
@@ -116,7 +111,7 @@ export function FundingOpportunities() {
               <Target className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-1">Funding Match Summary</h3>
+              <h3 className="text-base font-semibold mb-1">Funding Match Summary</h3>
               <p className="text-white/90 text-sm">
                 {userKeywords.size > 0
                   ? `Your ${userKeywords.size} expertise keyword${userKeywords.size > 1 ? 's' : ''} matched against ${FUNDING_DB.length} active funding calls. ${opportunitiesWithMatch.filter(o => o.matchScore >= 70).length} high-relevance opportunities found.`
@@ -160,7 +155,7 @@ export function FundingOpportunities() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1 flex-wrap">
-                            <h3 className="text-xl font-bold text-brand">{opp.title}</h3>
+                            <h3 className="text-base font-semibold text-brand">{opp.title}</h3>
                             <Badge className={opp.matchScore >= 70 ? 'bg-success-muted text-success-foreground' : 'bg-muted text-muted-foreground'}>
                               {opp.matchScore}% Match
                             </Badge>
@@ -173,7 +168,7 @@ export function FundingOpportunities() {
                       <div className="flex items-center gap-6 text-sm mb-4">
                         <div className="flex items-center gap-1.5">
                           <DollarSign className="w-4 h-4 text-success" />
-                          <span className="font-bold text-success-foreground">{opp.amount}</span>
+                          <span className="font-semibold text-brand-foreground">{opp.amount}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4 text-muted-foreground" />
@@ -237,7 +232,7 @@ export function FundingOpportunities() {
                     <div className="w-52 shrink-0 space-y-3">
                       <Card className="p-4 bg-brand-muted border border-border text-center">
                         <div className="text-xs text-muted-foreground mb-1">Success Probability</div>
-                        <div className="text-4xl font-bold text-success mb-1">{opp.successRate}%</div>
+                        <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-success mb-1">{opp.successRate}%</div>
                         <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-brand rounded-full" style={{ width: `${opp.successRate}%` }} />
                         </div>
@@ -245,7 +240,7 @@ export function FundingOpportunities() {
                       </Card>
                       <Card className="p-4 text-center">
                         <div className="text-xs text-muted-foreground mb-1">Match Score</div>
-                        <div className="text-3xl font-bold text-brand">{opp.matchScore}%</div>
+                        <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand">{opp.matchScore}%</div>
                         <div className="text-xs text-muted-foreground mt-1">{opp.matchedAreas.length} keyword{opp.matchedAreas.length !== 1 ? 's' : ''} matched</div>
                       </Card>
                     </div>
@@ -260,7 +255,7 @@ export function FundingOpportunities() {
         {activeTab === 'alerts' && (
           <div className="space-y-4">
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-2">Funding Alert Configuration</h3>
+              <h3 className="text-base font-semibold mb-2">Funding Alert Configuration</h3>
               <p className="text-sm text-muted-foreground mb-6">Enable alerts to be notified when deadlines approach or new matching opportunities are added.</p>
               <div className="space-y-4">
                 {opportunitiesWithMatch.map(opp => {
@@ -294,7 +289,7 @@ export function FundingOpportunities() {
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Global Alert Preferences</h3>
+              <h3 className="text-base font-semibold mb-4">Global Alert Preferences</h3>
               <div className="space-y-4">
                 {[
                   { label: 'New matching opportunities', desc: 'Alert when new grants match your expertise', key: 'new_match' },
@@ -318,21 +313,21 @@ export function FundingOpportunities() {
         {/* AWARDS TAB */}
         {activeTab === 'awards' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 { label: 'Total Awards', value: AWARD_HISTORY.length, color: 'text-brand' },
                 { label: 'Total Funded', value: '$250K', color: 'text-success' },
                 { label: 'Success Rate', value: '67%', color: 'text-brand' },
               ].map(m => (
                 <Card key={m.label} className="p-6 text-center">
-                  <div className={`text-4xl font-bold ${m.color} mb-1`}>{m.value}</div>
+                  <div className={`text-2xl font-semibold tabular-nums sm:text-3xl ${m.color} mb-1`}>{m.value}</div>
                   <div className="text-sm text-muted-foreground">{m.label}</div>
                 </Card>
               ))}
             </div>
 
             <Card className="p-6">
-              <h3 className="text-xl font-bold mb-4">Award History</h3>
+              <h3 className="text-base font-semibold mb-4">Award History</h3>
               <div className="space-y-4">
                 {AWARD_HISTORY.map((award, i) => (
                   <div key={i} className="flex items-center justify-between p-5 border border-border rounded-xl hover:border-border transition-all">
@@ -341,12 +336,12 @@ export function FundingOpportunities() {
                         <Trophy className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="font-bold">{award.title}</div>
+                        <div className="font-semibold">{award.title}</div>
                         <div className="text-sm text-muted-foreground">{award.agency} · {award.year}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-success">{award.amount}</div>
+                      <div className="text-base font-semibold text-success">{award.amount}</div>
                       <Badge className={award.status === 'Active' ? 'bg-success-muted text-success-foreground' : 'bg-muted text-muted-foreground'}>
                         {award.status === 'Active' && <CheckCircle className="w-3 h-3 mr-1" />}
                         {award.status}
@@ -368,7 +363,7 @@ export function FundingOpportunities() {
           {selectedFunding && (
             <div className="space-y-5">
               <div className="bg-brand-muted border border-border rounded-lg p-4">
-                <div className="font-bold text-brand mb-1">{selectedFunding.title}</div>
+                <div className="font-semibold text-brand mb-1">{selectedFunding.title}</div>
                 <div className="text-sm text-brand">{selectedFunding.agency} · {selectedFunding.amount}</div>
               </div>
               <div>

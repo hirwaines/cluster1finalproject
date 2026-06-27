@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { DashboardPageHeader, tabClass, CHART_COLORS } from '../components/layout';
+import { tabClass, CHART_COLORS } from '../components/layout';
+import { usePageHeaderActions, usePageHeaderMeta } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
 import { Network, Download, TrendingUp, AlertCircle } from 'lucide-react';
@@ -106,23 +107,28 @@ export function CollaborationNetwork() {
     URL.revokeObjectURL(url);
   };
 
-  if (!user) return null;
-
   const researcherCount = researchers.filter(r => r.role === 'researcher').length;
+
+  usePageHeaderMeta(
+    undefined,
+    `${coAuthorshipEdges.length} co-authorship link${coAuthorshipEdges.length !== 1 ? 's' : ''} across ${researcherCount} researchers`,
+  );
+
+  const headerActions = useMemo(
+    () => (
+      <Button variant="outline" onClick={handleExport}>
+        <Download className="w-4 h-4 mr-2" />
+        Export CSV
+      </Button>
+    ),
+    [networkMetrics],
+  );
+  usePageHeaderActions(headerActions);
+
+  if (!user) return null;
 
   return (
     <>
-      <DashboardPageHeader
-        title="Research Collaboration Network"
-        description={`${coAuthorshipEdges.length} co-authorship link${coAuthorshipEdges.length !== 1 ? 's' : ''} across ${researcherCount} researchers`}
-        actions={
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        }
-      />
-
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[
           { label: 'Researchers', value: researcherCount, color: 'text-brand-dark' },
@@ -131,7 +137,7 @@ export function CollaborationNetwork() {
           { label: 'Isolated Researchers', value: collaborationGaps.length, color: 'text-warning' },
         ].map(m => (
           <Card key={m.label} className="p-6">
-            <div className={`text-3xl font-bold ${m.color} mb-1`}>{m.value}</div>
+            <div className={`text-2xl font-semibold tabular-nums sm:text-3xl ${m.color} mb-1`}>{m.value}</div>
             <div className="text-sm text-muted-foreground">{m.label}</div>
           </Card>
         ))}
@@ -160,7 +166,7 @@ export function CollaborationNetwork() {
       {activeTab === 'network' && (
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-4">Co-authorship Network Visualization</h3>
+            <h3 className="text-base font-semibold mb-4">Co-authorship Network Visualization</h3>
             <div className="bg-brand-muted/50 rounded-xl overflow-hidden border border-border">
               <svg width="100%" viewBox="0 0 600 440" className="w-full">
                 {coAuthorshipEdges.map((edge, i) => {
@@ -237,7 +243,7 @@ export function CollaborationNetwork() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-4">Network Growth Over Time</h3>
+            <h3 className="text-base font-semibold mb-4">Network Growth Over Time</h3>
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={networkGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -255,7 +261,7 @@ export function CollaborationNetwork() {
       {activeTab === 'metrics' && (
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-2">Network Centrality & Influence Metrics</h3>
+            <h3 className="text-base font-semibold mb-2">Network Centrality & Influence Metrics</h3>
             <p className="text-sm text-muted-foreground mb-6">Researchers ranked by degree centrality (number of direct co-authorship connections).</p>
             <div className="space-y-4">
               {networkMetrics.map((m, idx) => (
@@ -264,7 +270,7 @@ export function CollaborationNetwork() {
                   className="flex items-center gap-4 p-4 border border-border rounded-xl hover:border-brand/20 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => navigate(`/researcher/profile/${m.researcher.id}`)}
                 >
-                  <div className="w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                  <div className="w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
                     {idx + 1}
                   </div>
                   <div className="w-10 h-10 bg-brand-dark rounded-full flex items-center justify-center text-white font-bold shrink-0">
@@ -274,17 +280,17 @@ export function CollaborationNetwork() {
                     <div className="font-semibold truncate">{m.researcher.name}</div>
                     <div className="text-sm text-muted-foreground">{m.researcher.department}</div>
                   </div>
-                  <div className="grid grid-cols-3 gap-6 text-center">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-xl font-bold text-brand-dark">{m.degree}</div>
+                      <div className="text-base font-semibold text-brand-dark">{m.degree}</div>
                       <div className="text-xs text-muted-foreground">Connections</div>
                     </div>
                     <div>
-                      <div className="text-xl font-bold text-success">{m.centrality}%</div>
+                      <div className="text-base font-semibold text-success">{m.centrality}%</div>
                       <div className="text-xs text-muted-foreground">Centrality</div>
                     </div>
                     <div>
-                      <div className="text-xl font-bold text-brand">{m.kwCount}</div>
+                      <div className="text-base font-semibold text-brand">{m.kwCount}</div>
                       <div className="text-xs text-muted-foreground">Keywords</div>
                     </div>
                   </div>
@@ -306,14 +312,14 @@ export function CollaborationNetwork() {
       {activeTab === 'gaps' && (
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="text-xl font-bold mb-2">Collaboration Gap Analysis</h3>
+            <h3 className="text-base font-semibold mb-2">Collaboration Gap Analysis</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Researchers with no recorded co-authorship connections. These represent opportunities for new collaborations.
             </p>
             {collaborationGaps.length === 0 ? (
               <div className="text-center py-12">
                 <Network className="w-16 h-16 text-success mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2 text-success-foreground">No gaps detected!</h3>
+                <h3 className="text-base font-semibold mb-2 text-success-foreground">No gaps detected!</h3>
                 <p className="text-muted-foreground">All researchers have at least one co-authorship connection.</p>
               </div>
             ) : (

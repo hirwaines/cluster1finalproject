@@ -37,17 +37,12 @@ export function SettingsPage() {
     { id: 'notifications', icon: Bell, label: 'Notifications', description: 'Email digest, in-app alerts' },
     { id: 'appearance', icon: Palette, label: 'Appearance', description: 'Theme & accent color' },
     { id: 'language', icon: Globe, label: 'Language & region', description: 'English (UK) · Europe/London' },
-    { id: 'ai', icon: Compass, label: 'Recommendations', description: 'Match sensitivity and collaboration suggestions' },
+    { id: 'ai', icon: BarChart3, label: 'Recommendations', description: 'Match sensitivity and collaboration suggestions' },
   ];
 
   return (
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Settings</h1>
-          <p className="text-muted-foreground">Manage your account settings and preferences</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-6">
+    <>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map(section => {
             const Icon = section.icon;
 
@@ -64,7 +59,7 @@ export function SettingsPage() {
                     <Icon className="w-6 h-6 text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold mb-1">{section.label}</h3>
+                    <h3 className="font-semibold mb-1">{section.label}</h3>
                     <p className="text-sm text-muted-foreground">{section.description}</p>
                   </div>
                 </div>
@@ -77,9 +72,9 @@ export function SettingsPage() {
         <Card className="p-8 mt-8">
           {activeSection === 'account' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
+              <h2 className="text-lg font-semibold mb-6">Account Settings</h2>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                 <div>
                   <Label>Full Name</Label>
                   <Input defaultValue={user.name} className="mt-2" />
@@ -90,7 +85,7 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                 <div>
                   <Label>ORCID iD</Label>
                   <Input defaultValue={user.orcid || '0000-0001-2345-6789'} className="mt-2" />
@@ -114,7 +109,7 @@ export function SettingsPage() {
 
           {activeSection === 'privacy' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold mb-6">Privacy Settings</h2>
+              <h2 className="text-lg font-semibold mb-6">Privacy Settings</h2>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -163,7 +158,7 @@ export function SettingsPage() {
 
           {activeSection === 'notifications' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold mb-6">Notification Preferences</h2>
+              <h2 className="text-lg font-semibold mb-6">Notification Preferences</h2>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -203,11 +198,11 @@ export function SettingsPage() {
 
           {activeSection === 'appearance' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold mb-6">Appearance</h2>
+              <h2 className="text-lg font-semibold mb-6">Appearance</h2>
 
               <div>
                 <Label className="mb-3 block">Theme</Label>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <Card className="p-4 border-2 border-brand cursor-pointer">
                     <div className="aspect-video bg-white rounded mb-2" />
                     <div className="font-medium text-center">Light</div>
@@ -242,7 +237,7 @@ export function SettingsPage() {
 
           {activeSection === 'language' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold mb-6">Language & Region</h2>
+              <h2 className="text-lg font-semibold mb-6">Language & Region</h2>
 
               <div>
                 <Label>Language</Label>
@@ -279,7 +274,7 @@ export function SettingsPage() {
 
           {activeSection === 'ai' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold mb-6">AI Preferences</h2>
+              <h2 className="text-lg font-semibold mb-6">AI Preferences</h2>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -338,6 +333,6 @@ export function SettingsPage() {
             </button>
           </div>
         </Card>
-      </div>
+    </>
   );
 }

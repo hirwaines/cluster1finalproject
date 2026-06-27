@@ -83,14 +83,7 @@ export function UploadResearch() {
   };
 
   return (
-      <div className="p-8 max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Submit publication</h1>
-          <p className="text-muted-foreground">
-            Your submission enters an administrator queue. After approval it is indexed for collaborator matching, expertise summaries, and discovery feeds.
-          </p>
-        </div>
-
+    <>
         {pendingPublications.filter(p => p.researcherId === user.id).length > 0 && (
           <Card className="p-4 mb-6 border-amber-200 bg-amber-50/80">
             <div className="text-sm font-semibold text-amber-900 mb-2">Your submissions in review</div>
@@ -176,7 +169,7 @@ export function UploadResearch() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
               <div>
                 <Label htmlFor="field">Research Field *</Label>
                 <Select
@@ -289,6 +282,6 @@ export function UploadResearch() {
             </Button>
           </div>
         </form>
-      </div>
+    </>
   );
 }

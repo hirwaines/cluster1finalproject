@@ -5,18 +5,20 @@
   --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
   --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
-  /* NCST / Rwanda government-inspired palette (primary blue + green accent) */
+  /* NCST blue primary + light blue secondary (no green in app chrome) */
   --brand: #034ea2;
   --brand-dark: #0c2340;
   --brand-hover: #023a7a;
   --brand-foreground: #ffffff;
   --brand-muted: #e8f1fb;
-  --accent-rw: #009639;
-  --accent-warm: #009639;
-  --surface: #f4f8fc;
+  --brand-secondary: #5b8fd4;
+  --accent-rw: #5b8fd4;
+  --accent-warm: #5b8fd4;
+  --surface: #f8fafc;
   --surface-elevated: #ffffff;
+  --workspace: #ffffff;
 
-  --background: var(--surface);
+  --background: var(--workspace);
   --foreground: #0c2340;
   --card: var(--surface-elevated);
   --card-foreground: #0c2340;
@@ -26,15 +28,15 @@
   --primary-foreground: #ffffff;
   --secondary: #e8f1fb;
   --secondary-foreground: #0c2340;
-  --muted: #eef4fa;
+  --muted: #f1f5f9;
   --muted-foreground: #475569;
   --accent: var(--brand-muted);
   --accent-foreground: var(--brand-dark);
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
-  --success: #059669;
-  --success-muted: #ecfdf5;
-  --success-foreground: #065f46;
+  --success: #034ea2;
+  --success-muted: #e8f1fb;
+  --success-foreground: #023a7a;
   --warning: #d97706;
   --warning-muted: #fffbeb;
   --warning-foreground: #92400e;
@@ -49,12 +51,12 @@
   --font-weight-normal: 400;
   --ring: #034ea2;
   --chart-1: #034ea2;
-  --chart-2: #009639;
+  --chart-2: #5b8fd4;
   --chart-3: #0c2340;
-  --chart-4: #5b8fd4;
-  --chart-5: #38a169;
-  --radius: 0.5rem;
-  --sidebar: #f4f8fc;
+  --chart-4: #7eb0e8;
+  --chart-5: #023a7a;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
   --sidebar-foreground: #0c2340;
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: #ffffff;
@@ -134,6 +136,7 @@
   --color-brand-muted: var(--brand-muted);
   --color-accent-warm: var(--accent-warm);
   --color-accent-rw: var(--accent-rw);
+  --color-brand-secondary: var(--brand-secondary);
   --color-success: var(--success);
   --color-success-muted: var(--success-muted);
   --color-success-foreground: var(--success-foreground);
@@ -158,8 +161,55 @@
   }
 
   h1, h2, h3, h4 {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     color: var(--foreground);
+  }
+
+  /* Authenticated app: one scale, one weight rhythm */
+  .app-workspace {
+    font-family: var(--font-body);
+    color: var(--foreground);
+  }
+
+  /* App workspace: map legacy success/green utilities to brand blue */
+  .app-workspace .text-success,
+  .app-workspace .text-success-foreground {
+    color: var(--brand) !important;
+  }
+
+  .app-workspace .bg-success-muted,
+  .app-workspace .bg-success-muted\/50 {
+    background-color: var(--brand-muted) !important;
+  }
+
+  .app-workspace .border-green-200,
+  .app-workspace .border-green-600 {
+    border-color: color-mix(in srgb, var(--brand) 25%, transparent) !important;
+  }
+
+  .app-workspace h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .app-workspace h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .app-workspace h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .app-workspace h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
   }
 
   /* Dark marketing bands: headings inherit section text colour */
@@ -172,6 +222,10 @@
 
   .font-display {
     font-family: var(--font-display);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
   }
 
   html {

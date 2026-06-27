@@ -6,7 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Checkbox } from '../components/ui/checkbox';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { tabClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { LogOut, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
@@ -85,11 +85,6 @@ export function UserSecurityManagement() {
 
   return (
     <>
-      <DashboardPageHeader
-        title="User & Security Management"
-        description="Manage users, permissions, audit logs, and security settings"
-      />
-
       <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
         {(['users', 'permissions', 'audit', 'sessions', 'security'] as const).map(tab => (
           <button
@@ -105,10 +100,10 @@ export function UserSecurityManagement() {
 
         {/* USERS TAB */}
         {activeTab === 'users' && (
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             <div className="col-span-1">
               <Card className="p-6 sticky top-20">
-                <h3 className="font-bold text-lg mb-4">Users ({filteredResearchers.length})</h3>
+                <h3 className="font-semibold text-base mb-4">Users ({filteredResearchers.length})</h3>
                 <Input
                   placeholder="Search users..."
                   value={searchQuery}
@@ -143,7 +138,7 @@ export function UserSecurityManagement() {
                 <Card className="p-8">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold mb-2">{selectedUser.name}</h2>
+                      <h2 className="text-lg font-semibold mb-2">{selectedUser.name}</h2>
                       <p className="text-muted-foreground">{selectedUser.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -174,7 +169,7 @@ export function UserSecurityManagement() {
 
                   {/* Verification Status */}
                   <div className="mb-8 pb-8 border-b">
-                    <h3 className="font-bold mb-4">Verification Status</h3>
+                    <h3 className="font-semibold mb-4">Verification Status</h3>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <Checkbox checked={selectedUser.verified} disabled />
@@ -189,7 +184,7 @@ export function UserSecurityManagement() {
 
                   {/* Active Sessions */}
                   <div className="mb-8 pb-8 border-b">
-                    <h3 className="font-bold mb-4">Active Sessions ({userSessionsForSelected.length})</h3>
+                    <h3 className="font-semibold mb-4">Active Sessions ({userSessionsForSelected.length})</h3>
                     {userSessionsForSelected.length > 0 ? (
                       <div className="space-y-3">
                         {userSessionsForSelected.map(session => (
@@ -259,7 +254,7 @@ export function UserSecurityManagement() {
             {userPermissions.map(perm => (
               <Card key={perm.id} className="p-6">
                 <div className="mb-4">
-                  <h3 className="font-bold text-lg">{perm.roleId.toUpperCase()}</h3>
+                  <h3 className="font-semibold text-base">{perm.roleId.toUpperCase()}</h3>
                   <p className="text-muted-foreground">Resource: {perm.resource}</p>
                 </div>
                 <div className="grid grid-cols-5 gap-4">
@@ -300,7 +295,7 @@ export function UserSecurityManagement() {
         {/* SESSIONS TAB */}
         {activeTab === 'sessions' && (
           <Card className="p-6">
-            <h3 className="font-bold mb-6">All Active User Sessions ({userSessions.filter(s => s.active).length})</h3>
+            <h3 className="font-semibold mb-6">All Active User Sessions ({userSessions.filter(s => s.active).length})</h3>
             <div className="space-y-3">
               {userSessions
                 .filter(s => s.active)
@@ -333,9 +328,9 @@ export function UserSecurityManagement() {
         {/* SECURITY SETTINGS TAB */}
         {activeTab === 'security' && (
           <Card className="p-6">
-            <h3 className="font-bold text-lg mb-6">System Security Settings</h3>
+            <h3 className="font-semibold text-base mb-6">System Security Settings</h3>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="p-4 border rounded">
                   <Label className="block mb-2">Password Expiration (days)</Label>
                   <Input type="number" placeholder="90" disabled defaultValue="90" />
@@ -346,7 +341,7 @@ export function UserSecurityManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="p-4 border rounded">
                   <Label className="block mb-2">Login Attempt Limit</Label>
                   <Input type="number" placeholder="5" disabled defaultValue="5" />

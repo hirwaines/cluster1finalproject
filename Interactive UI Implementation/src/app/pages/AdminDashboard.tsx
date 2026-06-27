@@ -4,7 +4,10 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Avatar } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { StatCard, dashboardStatGridClass, dashboardSectionHeadingClass, dashboardListItemClass, dashboardThreeColGridClass, dashboardTwoColGridClass } from '../components/layout';
+import { usePageHeaderActions } from '../context/PageHeaderContext';
+import { UserAvatar } from '../components/ui/UserAvatar';
+import { useDashboardTab } from '../hooks/useDashboardTab';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
@@ -27,7 +30,8 @@ import {
   BarChart3,
   Database,
   Upload,
-  Home,
+  LayoutDashboard,
+  ChevronRight,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
@@ -55,9 +59,14 @@ export function AdminDashboard() {
   } = useApp();
   const [selectedResearcher, setSelectedResearcher] = useState<string | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
-  const [activeTab, setActiveTab] = useState<
-    'accreditations' | 'publications' | 'funders' | 'users' | 'import'
-  >('accreditations');
+  const [activeTab, setActiveTab] = useDashboardTab('overview', [
+    'overview',
+    'accreditations',
+    'publications',
+    'funders',
+    'users',
+    'import',
+  ] as const);
   const [staffForm, setStaffForm] = useState({
     name: '',
     email: '',
@@ -80,6 +89,25 @@ export function AdminDashboard() {
       return true;
     });
   }, [researchers, roleFilter, statusFilter]);
+
+  const headerActions = useMemo(
+    () => (
+      <>
+        <Button variant="outline" size="sm" onClick={() => setActiveTab('import')}>
+          <Upload className="w-4 h-4 mr-2" />
+          Import CSV
+        </Button>
+        {activeTab === 'users' && (
+          <Button size="sm" onClick={() => setShowCreateStaff(true)}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Create account
+          </Button>
+        )}
+      </>
+    ),
+    [activeTab, setActiveTab],
+  );
+  usePageHeaderActions(headerActions);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -126,274 +154,313 @@ export function AdminDashboard() {
     });
   };
 
-  const adminNavItems = [
-    { id: 'accreditations', label: 'Accreditations', icon: GraduationCap, badge: pendingResearchers.length },
-    { id: 'publications', label: 'Publications', icon: FileText, badge: pendingPublications.length },
-    { id: 'funders', label: 'Funders', icon: Award, badge: pendingFunders.length },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'import', label: 'Data Import', icon: Upload },
-  ] as const;
+  const pendingTotal = pendingResearchers.length + pendingFunders.length + pendingPublications.length;
 
-  const adminSystemItems = [
-    { label: 'Knowledge Processing', icon: Cpu, path: '/admin/knowledge-processing' },
-    { label: 'Security & Users', icon: Shield, path: '/admin/security-management' },
-    { label: 'Report Builder', icon: BarChart3, path: '/manager/reports' },
-    { label: 'Data Integration', icon: Database, path: '/data-integration' },
+  const queueItems = [
+    {
+      id: 'accreditations' as const,
+      label: 'Accreditation applications',
+      count: pendingResearchers.length,
+      icon: GraduationCap,
+      hint: 'Researcher credential reviews',
+    },
+    {
+      id: 'publications' as const,
+      label: 'Publication submissions',
+      count: pendingPublications.length,
+      icon: FileText,
+      hint: 'Awaiting catalogue approval',
+    },
+    {
+      id: 'funders' as const,
+      label: 'Funder registrations',
+      count: pendingFunders.length,
+      icon: Award,
+      hint: 'Partner onboarding queue',
+    },
+    {
+      id: 'users' as const,
+      label: 'Directory accounts',
+      count: researchers.length,
+      icon: Users,
+      hint: 'Roles, access, and verification',
+    },
+  ];
+
+  const systemLinks = [
+    { label: 'Knowledge processing', href: '/admin/knowledge-processing', icon: Cpu },
+    { label: 'Security & users', href: '/admin/security-management', icon: Shield },
+    { label: 'Report builder', href: '/manager/reports', icon: BarChart3 },
+    { label: 'Data integration', href: '/data-integration', icon: Database },
   ];
 
   return (
     <>
-      <DashboardPageHeader
-        title="Institutional Administration"
-        description="Manage accreditations, users, and platform data"
-        actions={
-          <>
-            <Button variant="outline" onClick={() => setActiveTab('import')}>
-              <Upload className="w-4 h-4 mr-2" />
-              Import CSV
-            </Button>
-            {activeTab === 'users' && (
-              <Button onClick={() => setShowCreateStaff(true)}>
-                <UserPlus className="w-4 h-4 mr-2" />
-                Create account
-              </Button>
-            )}
-          </>
-        }
-      />
-
-      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
-        {adminNavItems.map(item => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setActiveTab(item.id)}
-              className={tabClass(activeTab === item.id)}
-            >
-              <Icon className="w-4 h-4" />
-              {item.label}
-              {'badge' in item && item.badge > 0 && (
-                <Badge className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{item.badge}</Badge>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-amber-50 rounded-lg text-amber-700">
-                <Clock className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">
-              {pendingResearchers.length + pendingFunders.length + pendingPublications.length}
-            </div>
-            <div className="text-sm text-muted-foreground mb-2">Pending verifications</div>
-          </Card>
-
-          <Card className="p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-brand-muted/50 rounded-lg text-brand-dark">
-                <Users className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">{researchers.length}</div>
-            <div className="text-sm text-muted-foreground mb-2">Directory accounts</div>
-            <div className="text-xs text-muted-foreground">
-              R:{researchers.filter(r => r.role === 'researcher').length} • F:
-              {researchers.filter(r => r.role === 'funder').length} • M:
-              {researchers.filter(r => r.role === 'manager').length} • DH:
-              {researchers.filter(r => r.role === 'department_head').length}
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-slate-50 rounded-lg text-slate-700">
-                <FileText className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">{research.length}</div>
-            <div className="text-sm text-muted-foreground mb-2">Indexed publications</div>
-          </Card>
-
-          <Card className="p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-emerald-50 rounded-lg text-emerald-700">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">
-              {collaborationRequests.filter(c => c.status === 'pending' || c.status === 'accepted').length}
-            </div>
-            <div className="text-sm text-muted-foreground mb-2">Collaboration threads</div>
-          </Card>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'accreditations' && (
-          <>
-            {/* Pending Applications */}
-            <Card className="p-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2">Pending Accreditation Applications</h2>
-            <p className="text-muted-foreground">
-              Review applications to verify researcher credentials and accreditation requirements
-            </p>
+      {activeTab === 'overview' && (
+        <div className="space-y-5">
+          <div className={dashboardStatGridClass}>
+            <StatCard label="Pending verifications" value={pendingTotal} icon={Clock} accent="info" />
+            <StatCard
+              label="Directory accounts"
+              value={researchers.length}
+              icon={Users}
+              accent="brand"
+              hint={`R:${researchers.filter(r => r.role === 'researcher').length} · F:${researchers.filter(r => r.role === 'funder').length}`}
+            />
+            <StatCard label="Indexed publications" value={research.length} icon={FileText} accent="dark" />
+            <StatCard
+              label="Collaboration threads"
+              value={collaborationRequests.filter(c => c.status === 'pending' || c.status === 'accepted').length}
+              icon={TrendingUp}
+              accent="brand"
+            />
           </div>
 
-          {pendingResearchers.length === 0 ? (
-            <div className="text-center py-12">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">All caught up!</h3>
-              <p className="text-muted-foreground">No pending applications at the moment</p>
+          <div className={dashboardTwoColGridClass}>
+            <Card className="gap-0 overflow-hidden p-0">
+              <div className="border-b border-border/60 px-5 py-4">
+                <h2 className={dashboardSectionHeadingClass}>Administration queues</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Jump straight to work that needs your attention.
+                </p>
+              </div>
+              <div className="divide-y divide-border/60">
+                {queueItems.map(item => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveTab(item.id)}
+                      className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-brand-muted/30"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-muted text-brand">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-brand-dark">{item.label}</p>
+                        <p className="text-xs text-muted-foreground">{item.hint}</p>
+                      </div>
+                      <Badge className="border-0 bg-brand text-white">{item.count}</Badge>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <Card className="gap-0 overflow-hidden p-0">
+              <div className="border-b border-border/60 px-5 py-4">
+                <h2 className={dashboardSectionHeadingClass}>System tools</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Processing, security, reporting, and data sync across the platform.
+                </p>
+              </div>
+              <div className="divide-y divide-border/60">
+                {systemLinks.map(link => {
+                  const Icon = link.icon;
+                  return (
+                    <button
+                      key={link.href}
+                      type="button"
+                      onClick={() => navigate(link.href)}
+                      className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-brand-muted/30"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-muted text-brand">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-brand-dark">{link.label}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
+
+          <Card className="gap-0 overflow-hidden p-0">
+            <div className="border-b border-border/60 px-5 py-4">
+              <h2 className={dashboardSectionHeadingClass}>Platform snapshot</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                What is happening across ResearchIQ right now.
+              </p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {pendingResearchers.map(researcher => (
-                <div
-                  key={researcher.id}
-                  className="border border-border rounded-lg p-6 hover:border-brand/20 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-start gap-6">
-                    <Avatar className="w-16 h-16 bg-brand-dark flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
-                      {researcher.name.charAt(0)}
-                    </Avatar>
+            <div className={`${dashboardThreeColGridClass} p-5`}>
+              <div className="rounded-xl border border-border/60 bg-white p-4">
+                <div className="mb-2 flex items-center gap-2 text-brand">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">Live catalogue</span>
+                </div>
+                <p className="text-2xl font-semibold tabular-nums text-brand-dark">{research.length}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Indexed publications</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-white p-4">
+                <div className="mb-2 flex items-center gap-2 text-brand">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">Needs review</span>
+                </div>
+                <p className="text-2xl font-semibold tabular-nums text-brand-dark">{pendingTotal}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Pending verifications</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-white p-4">
+                <div className="mb-2 flex items-center gap-2 text-brand">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">Collaboration</span>
+                </div>
+                <p className="text-2xl font-semibold tabular-nums text-brand-dark">
+                  {collaborationRequests.filter(c => c.status === 'pending').length}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">Open collaboration requests</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-xl font-bold mb-1">{researcher.name}</h3>
-                          <p className="text-muted-foreground mb-2">{researcher.email}</p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <GraduationCap className="w-4 h-4" />
-                              {researcher.institution}
-                            </span>
-                            <span>•</span>
-                            <span>{researcher.department}</span>
-                            <span>•</span>
-                            <span>ORCID: {researcher.orcid}</span>
-                          </div>
-                        </div>
-                        <Badge className="bg-warning-muted text-warning-foreground">
-                          Submitted {researcher.submittedDate}
-                        </Badge>
-                      </div>
+        {activeTab === 'accreditations' && (
+          <div className="space-y-5">
+            <Card className="gap-0 overflow-hidden p-0">
+              <div className="border-b border-border/60 px-5 py-4">
+                <h2 className={dashboardSectionHeadingClass}>Pending accreditation applications</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Review credentials and approve researchers for the directory.
+                </p>
+              </div>
 
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="bg-brand-muted/50 p-4 rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">Highest Degree</div>
-                          <div className="font-bold text-brand-dark">{researcher.degree.toUpperCase()}</div>
-                        </div>
-                        <div className="bg-success-muted/50 p-4 rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">Experience</div>
-                          <div className="font-bold text-success">{researcher.experience} years</div>
-                        </div>
-                        <div className="bg-brand-muted/50 p-4 rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">Publications</div>
-                          <div className="font-bold text-brand-dark">{researcher.publications.length}</div>
-                        </div>
-                      </div>
+              <div className="p-5">
+                {pendingResearchers.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <CheckCircle className="mx-auto mb-3 h-12 w-12 text-brand" />
+                    <h3 className="text-base font-semibold text-brand-dark">All caught up</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">No pending applications right now.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingResearchers.map(researcher => (
+                      <article
+                        key={researcher.id}
+                        className="rounded-xl border border-border/60 bg-white p-4 sm:p-5"
+                      >
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+                          <UserAvatar name={researcher.name} size="lg" className="shrink-0" />
 
-                      <div className="mb-4">
-                        <div className="text-sm font-medium text-muted-foreground mb-2">Publication list</div>
-                        <p className="text-sm text-foreground">
-                          {researcher.publications.length}{' '}
-                          {researcher.publications.length === 1 ? 'entry' : 'entries'} submitted — keywords are extracted automatically after approval.
-                        </p>
-                      </div>
+                          <div className="min-w-0 flex-1 space-y-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <h3 className="text-base font-semibold text-brand-dark">{researcher.name}</h3>
+                                <p className="text-sm text-muted-foreground">{researcher.email}</p>
+                                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                  <span className="inline-flex items-center gap-1">
+                                    <GraduationCap className="h-3.5 w-3.5 text-brand" />
+                                    {researcher.institution}
+                                  </span>
+                                  <span>{researcher.department}</span>
+                                  <span>ORCID {researcher.orcid}</span>
+                                </div>
+                              </div>
+                              <Badge className="w-fit shrink-0 border-0 bg-brand-muted text-brand">
+                                Submitted {researcher.submittedDate}
+                              </Badge>
+                            </div>
 
-                      {/* Accreditation Check */}
-                      <div className="bg-success-muted/50 border border-green-200 rounded-lg p-4 mb-4">
-                        <div className="flex items-start gap-2">
-                          <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                          <div>
-                            <div className="font-semibold text-green-900 mb-1">Accreditation Requirements Met</div>
-                            <div className="text-sm text-success-foreground">
-                              ✓ {researcher.degree === 'phd' ? 'PhD degree with quantitative background' :
-                                 researcher.experience >= 3 ? `${researcher.experience} years of research experience (≥3 required)` :
-                                 'Meets educational requirements'}
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                              {[
+                                { label: 'Highest degree', value: researcher.degree.toUpperCase() },
+                                { label: 'Experience', value: `${researcher.experience} years` },
+                                { label: 'Publications', value: String(researcher.publications.length) },
+                              ].map(item => (
+                                <div key={item.label} className="rounded-lg bg-brand-muted/50 px-3 py-2.5">
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    {item.label}
+                                  </p>
+                                  <p className="mt-0.5 text-sm font-semibold text-brand-dark">{item.value}</p>
+                                </div>
+                              ))}
+                            </div>
+
+                            <p className="text-sm text-muted-foreground">
+                              {researcher.publications.length}{' '}
+                              {researcher.publications.length === 1 ? 'entry' : 'entries'} submitted — keywords
+                              are extracted after approval.
+                            </p>
+
+                            <div className="rounded-lg border border-brand/15 bg-brand-muted/40 px-3 py-2.5">
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                                <div>
+                                  <p className="text-sm font-semibold text-brand-dark">Requirements met</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {researcher.degree === 'phd'
+                                      ? 'PhD with quantitative background'
+                                      : researcher.experience >= 3
+                                        ? `${researcher.experience} years research experience (≥3 required)`
+                                        : 'Meets educational requirements'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              <Button size="sm" variant="outline" onClick={() => setSelectedResearcher(researcher.id)}>
+                                <Eye className="mr-1.5 h-4 w-4" />
+                                Details
+                              </Button>
+                              <Button size="sm" onClick={() => handleApprove(researcher.id)}>
+                                <CheckCircle className="mr-1.5 h-4 w-4" />
+                                Approve
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => handleReject(researcher.id)}>
+                                <XCircle className="mr-1.5 h-4 w-4" />
+                                Reject
+                              </Button>
                             </div>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedResearcher(researcher.id)}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Full Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => handleApprove(researcher.id)}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleReject(researcher.id)}
-                        >
-                          <XCircle className="w-4 h-4 mr-2" />
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
+                      </article>
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Recently Approved */}
-        <Card className="p-6 mt-8">
-          <h2 className="text-2xl font-bold mb-6">Recently Approved Researchers</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {researchers
-              .filter(r => r.role === 'researcher')
-              .slice(0, 6)
-              .map(researcher => (
-              <div
-                key={researcher.id}
-                className="border border-border rounded-lg p-4 hover:border-brand/20 transition-all cursor-pointer"
-                onClick={() => navigate(`/researcher/profile/${researcher.id}`)}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <Avatar className="w-12 h-12 bg-brand-dark flex items-center justify-center text-white font-bold">
-                    {researcher.name.charAt(0)}
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm truncate">{researcher.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{researcher.department}</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{researcher.publications} pubs</span>
-                  <Badge className="bg-success-muted text-success-foreground text-xs">Verified</Badge>
-                </div>
+                )}
               </div>
-            ))}
+            </Card>
+
+            <Card className="gap-0 overflow-hidden p-0">
+              <div className="border-b border-border/60 px-5 py-4">
+                <h2 className={dashboardSectionHeadingClass}>Recently approved researchers</h2>
+              </div>
+              <div className={`${dashboardThreeColGridClass} p-5`}>
+                {researchers
+                  .filter(r => r.role === 'researcher')
+                  .slice(0, 6)
+                  .map(researcher => (
+                    <button
+                      key={researcher.id}
+                      type="button"
+                      className={`${dashboardListItemClass} w-full text-left`}
+                      onClick={() => navigate(`/researcher/profile/${researcher.id}`)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <UserAvatar name={researcher.name} size="sm" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-brand-dark">{researcher.name}</p>
+                          <p className="truncate text-xs text-muted-foreground">{researcher.department}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{researcher.publications} publications</span>
+                        <Badge className="border-0 bg-brand-muted text-brand">Verified</Badge>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            </Card>
           </div>
-        </Card>
-          </>
         )}
 
         {activeTab === 'publications' && (
           <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-2">Publication approval queue</h2>
+            <h2 className="text-lg font-semibold mb-2">Publication approval queue</h2>
             <p className="text-muted-foreground mb-6 text-sm">
               Approve researcher submissions to add them to the live catalogue. Bulk CSV import is treated as pre-verified institutional data.
             </p>
@@ -410,7 +477,7 @@ export function AdminDashboard() {
                           {pub.researcherName} • Submitted {pub.submittedDate}
                         </p>
                       </div>
-                      <Badge className="bg-amber-100 text-amber-900">Pending</Badge>
+                      <Badge className="border-0 bg-brand-muted text-brand">Pending</Badge>
                     </div>
                     <p className="text-sm text-foreground line-clamp-4">{pub.abstract}</p>
                     <div className="text-xs text-muted-foreground flex flex-wrap gap-3">
@@ -431,7 +498,6 @@ export function AdminDashboard() {
                     <div className="flex gap-2 pt-2">
                       <Button
                         size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-700"
                         onClick={() => {
                           approvePublication(pub.id);
                           toast.success('Publication approved and indexed');
@@ -459,7 +525,7 @@ export function AdminDashboard() {
 
         {activeTab === 'funders' && (
           <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Pending funder applications</h2>
+            <h2 className="text-lg font-semibold mb-4">Pending funder applications</h2>
             {pendingFunders.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center">No pending funder registrations.</p>
             ) : (
@@ -473,7 +539,7 @@ export function AdminDashboard() {
                       <div className="text-xs text-muted-foreground mt-1">Submitted {f.submittedDate}</div>
                     </div>
                     <div className="flex gap-2 items-start">
-                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { approveFunder(f.id); toast.success('Funder approved'); }}>
+                      <Button size="sm" onClick={() => { approveFunder(f.id); toast.success('Funder approved'); }}>
                         Approve
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => { rejectFunder(f.id); toast.message('Application rejected'); }}>
@@ -489,7 +555,7 @@ export function AdminDashboard() {
 
         {activeTab === 'import' && (
           <Card className="p-6 space-y-4">
-            <h2 className="text-2xl font-bold">Publication CSV import</h2>
+            <h2 className="text-lg font-semibold">Publication CSV import</h2>
             <p className="text-muted-foreground text-sm">
               Expected columns: title, researcherId, keywords (semicolon-separated). Records processed here are added directly as verified catalogue rows.
             </p>
@@ -543,12 +609,12 @@ export function AdminDashboard() {
           <Card className="p-6">
             <div className="mb-6 flex flex-wrap justify-between gap-4 items-end">
               <div>
-                <h2 className="text-2xl font-bold mb-2">User management</h2>
+                <h2 className="text-lg font-semibold mb-2">User management</h2>
                 <p className="text-muted-foreground">Directory accounts with verification state</p>
               </div>
               <div className="flex gap-3 flex-wrap">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-[160px]">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -560,7 +626,7 @@ export function AdminDashboard() {
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[160px]">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -604,9 +670,9 @@ export function AdminDashboard() {
                       <td className="px-6 py-4">
                         <Badge className={
                           researcher.role === 'researcher' ? 'bg-brand-muted text-brand-dark' :
-                          researcher.role === 'funder' ? 'bg-emerald-100 text-emerald-800' :
+                          researcher.role === 'funder' ? 'bg-brand-muted text-brand' :
                           researcher.role === 'manager' ? 'bg-brand-muted text-brand-dark' :
-                          researcher.role === 'department_head' ? 'bg-amber-100 text-amber-900' :
+                          researcher.role === 'department_head' ? 'bg-brand-muted text-brand-dark' :
                           'bg-muted text-foreground'
                         }>
                           {researcher.role}
@@ -617,8 +683,8 @@ export function AdminDashboard() {
                           researcher.disabled
                             ? 'bg-muted text-foreground'
                             : researcher.verified
-                              ? 'bg-success-muted text-success-foreground'
-                              : 'bg-warning-muted text-warning-foreground'
+                              ? 'bg-brand-muted text-brand'
+                              : 'border border-brand/25 bg-white text-brand-dark'
                         }>
                           {researcher.disabled ? 'Disabled' : researcher.verified ? 'Verified' : 'Pending'}
                         </Badge>
@@ -668,7 +734,7 @@ export function AdminDashboard() {
           {selectedProfile && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl">Application Details</DialogTitle>
+                <DialogTitle>Application Details</DialogTitle>
               </DialogHeader>
 
               <div className="space-y-6">
@@ -677,7 +743,7 @@ export function AdminDashboard() {
                     {selectedProfile.name.charAt(0)}
                   </Avatar>
                   <div className="flex-1">
-                    <h3 className="text-2xl font-bold mb-1">{selectedProfile.name}</h3>
+                    <h3 className="text-lg font-semibold mb-1">{selectedProfile.name}</h3>
                     <p className="text-muted-foreground mb-2">{selectedProfile.email}</p>
                     <div className="flex items-center gap-2">
                       <Badge>ORCID: {selectedProfile.orcid}</Badge>
@@ -687,21 +753,21 @@ export function AdminDashboard() {
                 </div>
 
                 <div>
-                  <h4 className="font-bold mb-3">Educational Background</h4>
+                  <h4 className="font-semibold mb-3">Educational Background</h4>
                   <div className="bg-muted/50 p-4 rounded-lg">
                     <p className="whitespace-pre-line">{selectedProfile.education}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-bold mb-3">Indexed publications</h4>
+                  <h4 className="font-semibold mb-3">Indexed publications</h4>
                   <p className="text-sm text-muted-foreground mb-2">
                     Expertise keywords are extracted from approved publication metadata.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold mb-3">Publications ({selectedProfile.publications.length})</h4>
+                  <h4 className="font-semibold mb-3">Publications ({selectedProfile.publications.length})</h4>
                   <div className="bg-muted/50 p-4 rounded-lg max-h-60 overflow-y-auto">
                     <ol className="list-decimal list-inside space-y-2">
                       {selectedProfile.publications.map((pub, idx) => (
@@ -712,7 +778,7 @@ export function AdminDashboard() {
                 </div>
 
                 <div>
-                  <h4 className="font-bold mb-3">CV / Resume</h4>
+                  <h4 className="font-semibold mb-3">CV / Resume</h4>
                   <Button variant="outline" className="w-full">
                     <Download className="w-4 h-4 mr-2" />
                     Download {selectedProfile.cv}
@@ -721,7 +787,7 @@ export function AdminDashboard() {
 
                 <div className="flex gap-3 pt-4 border-t">
                   <Button
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1"
                     onClick={() => handleApprove(selectedProfile.id)}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
@@ -746,11 +812,11 @@ export function AdminDashboard() {
       <Dialog open={showCreateStaff} onOpenChange={setShowCreateStaff}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Provision staff or funder account</DialogTitle>
+            <DialogTitle>Provision staff or funder account</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleCreateStaff} className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
               <div>
                 <Label htmlFor="staffName">Full Name *</Label>
                 <Input
@@ -795,7 +861,7 @@ export function AdminDashboard() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
               <div>
                 <Label htmlFor="staffInstitution">Organization *</Label>
                 <Input

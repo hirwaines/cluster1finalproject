@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -10,7 +10,9 @@ import { Textarea } from '../components/ui/textarea';
 import { DataFreshness } from '../components/DataFreshness';
 import { SystemAnnouncements } from '../components/SystemAnnouncements';
 import { DepartmentSelector } from '../components/DepartmentSelector';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { StatCard, dashboardStatGridClass } from '../components/layout';
+import { usePageHeaderActions } from '../context/PageHeaderContext';
+import { useDashboardTab } from '../hooks/useDashboardTab';
 import { useApp } from '../context/AppContext';
 import {
   BarChart3,
@@ -65,7 +67,15 @@ const AI_STRATEGIC_RECOMMENDATIONS = [
 export function ResearchManagerDashboard() {
   const navigate = useNavigate();
   const { user, researchers, research } = useApp();
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useDashboardTab('dashboard', [
+    'dashboard',
+    'projects',
+    'faculty',
+    'analytics',
+    'reports',
+    'strategic',
+    'publications',
+  ] as const);
   const [selectedDepartment, setSelectedDepartment] = useState('all');
 
   // Dialog states
@@ -86,30 +96,6 @@ export function ResearchManagerDashboard() {
       navigate('/login');
     }
   }, [user, navigate]);
-
-  if (!user || user.role !== 'manager') {
-    return null;
-  }
-
-  const sectionMeta: Record<string, { title: string; description: string }> = {
-    dashboard: { title: 'Research Dashboard', description: 'Overview of institutional research activities and performance' },
-    projects: { title: 'Active Projects', description: 'Monitor ongoing research projects and their progress' },
-    faculty: { title: 'Faculty & Staff Directory', description: 'View and manage all researchers and staff members' },
-    analytics: { title: 'Analytics Overview', description: 'Comprehensive research performance analytics and insights' },
-    reports: { title: 'Reports & Analytics', description: 'Generate and manage research reports' },
-    strategic: { title: 'Strategic Planning', description: "AI-generated strategic recommendations based on your institution's research data and trends." },
-    publications: { title: 'All Publications', description: `${research.length} indexed publications across all researchers` },
-  };
-
-  const sections = [
-    { id: 'dashboard', label: 'Research Dashboard', icon: BarChart3 },
-    { id: 'projects', label: 'Active Projects', icon: FileText },
-    { id: 'faculty', label: 'Data Profile', icon: Users },
-    { id: 'analytics', label: 'Analytics Overview', icon: TrendingUp },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'strategic', label: 'Strategic Planning', icon: Sparkles },
-    { id: 'publications', label: 'All Publications', icon: BookOpen },
-  ];
 
   const exportDirectory = () => {
     const rows = [['Name', 'Department', 'Institution', 'Publications', 'Citations', 'h-index']];
@@ -147,6 +133,75 @@ export function ResearchManagerDashboard() {
     toast.success('Report exported successfully.');
   };
 
+  const headerActions = useMemo(
+    () => (
+      <>
+        {activeSection === 'dashboard' && (
+          <>
+            <DepartmentSelector value={selectedDepartment} onChange={setSelectedDepartment} showAllOption={true} />
+            <DataFreshness lastUpdated={new Date()} variant="compact" />
+          </>
+        )}
+        {activeSection === 'projects' && (
+          <Button className="bg-brand-dark hover:bg-brand-dark" onClick={() => setNewProjectOpen(true)}>
+            <PlusCircle className="w-4 h-4 mr-2" />
+            New Project
+          </Button>
+        )}
+        {activeSection === 'faculty' && (
+          <Button variant="outline" onClick={exportDirectory}>
+            <Download className="w-4 h-4 mr-2" />
+            Export List
+          </Button>
+        )}
+        {activeSection === 'reports' && (
+          <Button onClick={() => navigate('/manager/reports')} className="bg-brand-dark hover:bg-brand-dark">
+            <FileText className="w-4 h-4 mr-2" />
+            Open Report Builder
+          </Button>
+        )}
+        {activeSection === 'publications' && (
+          <Button variant="outline" onClick={() => {
+            const rows = [['Title', 'Researcher', 'Field', 'Date', 'Citations', 'Keywords']];
+            research.forEach(r => {
+              const lead = researchers.find(x => x.id === r.researcherId);
+              rows.push([r.title, lead?.name || '', r.field, r.publicationDate, String(r.citations), r.keywords.join(';')]);
+            });
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'publications.csv'; a.click();
+            URL.revokeObjectURL(url);
+            toast.success('Publications exported.');
+          }}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        )}
+        <Button variant="outline" size="sm" onClick={exportReport}>
+          <Download className="w-4 h-4 mr-2" />
+          Export Report
+        </Button>
+      </>
+    ),
+    [activeSection, selectedDepartment, research, researchers, navigate],
+  );
+  usePageHeaderActions(user?.role === 'manager' ? headerActions : null);
+
+  if (!user || user.role !== 'manager') {
+    return null;
+  }
+
+  const sections = [
+    { id: 'dashboard', label: 'Research Dashboard', icon: BarChart3 },
+    { id: 'projects', label: 'Active Projects', icon: FileText },
+    { id: 'faculty', label: 'Data Profile', icon: Users },
+    { id: 'analytics', label: 'Analytics Overview', icon: TrendingUp },
+    { id: 'reports', label: 'Reports', icon: FileText },
+    { id: 'strategic', label: 'Strategic Planning', icon: Sparkles },
+    { id: 'publications', label: 'All Publications', icon: BookOpen },
+  ];
+
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success(`Invitation sent to ${inviteForm.email}`);
@@ -168,122 +223,22 @@ export function ResearchManagerDashboard() {
 
   return (
     <>
-      <DashboardPageHeader
-        title={sectionMeta[activeSection].title}
-        description={sectionMeta[activeSection].description}
-        actions={
-          <>
-            {activeSection === 'dashboard' && (
-              <>
-                <DepartmentSelector value={selectedDepartment} onChange={setSelectedDepartment} showAllOption={true} />
-                <DataFreshness lastUpdated={new Date()} variant="compact" />
-              </>
-            )}
-            {activeSection === 'projects' && (
-              <Button className="bg-brand-dark hover:bg-brand-dark" onClick={() => setNewProjectOpen(true)}>
-                <PlusCircle className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-            )}
-            {activeSection === 'faculty' && (
-              <Button variant="outline" onClick={exportDirectory}>
-                <Download className="w-4 h-4 mr-2" />
-                Export List
-              </Button>
-            )}
-            {activeSection === 'reports' && (
-              <Button onClick={() => navigate('/manager/reports')} className="bg-brand-dark hover:bg-brand-dark">
-                <FileText className="w-4 h-4 mr-2" />
-                Open Report Builder
-              </Button>
-            )}
-            {activeSection === 'publications' && (
-              <Button variant="outline" onClick={() => {
-                const rows = [['Title', 'Researcher', 'Field', 'Date', 'Citations', 'Keywords']];
-                research.forEach(r => {
-                  const lead = researchers.find(x => x.id === r.researcherId);
-                  rows.push([r.title, lead?.name || '', r.field, r.publicationDate, String(r.citations), r.keywords.join(';')]);
-                });
-                const csv = rows.map(r => r.join(',')).join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = 'publications.csv'; a.click();
-                URL.revokeObjectURL(url);
-                toast.success('Publications exported.');
-              }}>
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={exportReport}>
-              <Download className="w-4 h-4 mr-2" />
-              Export Report
-            </Button>
-          </>
-        }
-      />
-
-      <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
-        {sections.map(section => {
-          const Icon = section.icon;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => setActiveSection(section.id)}
-              className={tabClass(activeSection === section.id)}
-            >
-              <Icon className="w-4 h-4" />
-              {section.label}
-            </button>
-          );
-        })}
-      </div>
-
           {activeSection === 'dashboard' && (
             <div>
               <div className="mb-6">
                 <SystemAnnouncements limit={1} />
               </div>
 
-              <div className="grid grid-cols-4 gap-6 mb-8">
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-brand-muted rounded-lg"><Users className="w-6 h-6 text-brand-dark" /></div>
-                    <Badge className="bg-brand-muted text-brand-dark">+12%</Badge>
-                  </div>
-                  <div className="text-3xl font-bold mb-1">{researchers.length}</div>
-                  <div className="text-sm text-muted-foreground">Active Researchers</div>
-                </Card>
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-success-muted rounded-lg"><FileText className="w-6 h-6 text-success" /></div>
-                    <Badge className="bg-success-muted text-success-foreground">+8%</Badge>
-                  </div>
-                  <div className="text-3xl font-bold mb-1">{research.length}</div>
-                  <div className="text-sm text-muted-foreground">Publications</div>
-                </Card>
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-brand-muted rounded-lg"><DollarSign className="w-6 h-6 text-purple-600" /></div>
-                    <Badge className="bg-brand-muted text-brand-dark">+15%</Badge>
-                  </div>
-                  <div className="text-3xl font-bold mb-1">$14.5M</div>
-                  <div className="text-sm text-muted-foreground">Total Funding</div>
-                </Card>
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-warning-muted rounded-lg"><TrendingUp className="w-6 h-6 text-orange-600" /></div>
-                    <Badge className="bg-success-muted text-success-foreground">94%</Badge>
-                  </div>
-                  <div className="text-3xl font-bold mb-1">89</div>
-                  <div className="text-sm text-muted-foreground">Impact Score</div>
-                </Card>
+              <div className={`${dashboardStatGridClass} mb-5`}>
+                <StatCard label="Active researchers" value={researchers.length} icon={Users} accent="brand" hint="+12% vs last quarter" />
+                <StatCard label="Publications" value={research.length} icon={FileText} accent="info" hint="+8% indexed" />
+                <StatCard label="Total funding" value="$14.5M" icon={DollarSign} accent="dark" hint="+15% awarded" />
+                <StatCard label="Impact score" value={89} icon={TrendingUp} accent="brand" hint="94% target met" />
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5 mb-5">
                 <Card className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Publication Trend</h3>
+                  <h3 className="text-base font-semibold mb-4">Publication Trend</h3>
                   <ResponsiveContainer width="100%" height={250}>
                     <LineChart data={publicationTrend}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -295,8 +250,8 @@ export function ResearchManagerDashboard() {
                   </ResponsiveContainer>
                 </Card>
                 <Card className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Department Distribution</h3>
-                  <div className="flex items-center gap-6">
+                  <h3 className="text-base font-semibold mb-4">Department Distribution</h3>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     <ResponsiveContainer width="50%" height={200}>
                       <PieChart>
                         <Pie data={departmentData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="count">
@@ -322,8 +277,8 @@ export function ResearchManagerDashboard() {
               </div>
 
               <Card className="p-6">
-                <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-3 gap-4">
+                <h3 className="text-base font-semibold mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <button onClick={() => setInviteOpen(true)} className="p-4 bg-brand-muted/50 hover:bg-brand-muted rounded-lg text-left transition-all">
                     <UserPlus className="w-6 h-6 text-brand-dark mb-2" />
                     <div className="font-medium">Invite New Member</div>
@@ -352,7 +307,7 @@ export function ResearchManagerDashboard() {
                   <Card key={project.id} className="p-6 hover:shadow-lg transition-all">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="text-xl font-bold mb-2">{project.name}</h3>
+                        <h3 className="text-base font-semibold mb-2">{project.name}</h3>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span>Lead: {project.lead}</span>
                           <span>•</span>
@@ -370,7 +325,7 @@ export function ResearchManagerDashboard() {
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Progress</span>
-                        <span className="font-bold">{project.progress}%</span>
+                        <span className="font-semibold">{project.progress}%</span>
                       </div>
                       <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                         <div
@@ -400,7 +355,7 @@ export function ResearchManagerDashboard() {
                 </div>
               </Card>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                 {researchers.slice(0, 6).map(researcher => (
                   <Card key={researcher.id} className="p-6 hover:shadow-lg transition-all">
                     <div className="flex items-start gap-4 mb-4">
@@ -408,22 +363,22 @@ export function ResearchManagerDashboard() {
                         {researcher.name.charAt(0)}
                       </Avatar>
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-1">{researcher.name}</h3>
+                        <h3 className="font-semibold text-base mb-1">{researcher.name}</h3>
                         <p className="text-sm text-muted-foreground mb-2">{researcher.department} • {researcher.institution}</p>
                         <Badge className="bg-success-muted text-success-foreground text-xs">Accredited</Badge>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-brand-dark">{researcher.publications}</div>
+                        <div className="text-lg font-semibold text-brand-dark">{researcher.publications}</div>
                         <div className="text-xs text-muted-foreground">Publications</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-success">{researcher.citations}</div>
+                        <div className="text-lg font-semibold text-success">{researcher.citations}</div>
                         <div className="text-xs text-muted-foreground">Citations</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-brand-dark">{researcher.hIndex}</div>
+                        <div className="text-lg font-semibold text-brand-dark">{researcher.hIndex}</div>
                         <div className="text-xs text-muted-foreground">h-index</div>
                       </div>
                     </div>
@@ -439,25 +394,25 @@ export function ResearchManagerDashboard() {
           {/* ── ANALYTICS ── */}
           {activeSection === 'analytics' && (
             <div>
-              <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-5">
                 <Card className="p-6 bg-brand-muted/50">
-                  <div className="text-4xl font-bold text-brand-dark mb-2">1,248</div>
+                  <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand-dark mb-2">1,248</div>
                   <div className="text-sm text-foreground mb-1">Total Publications</div>
                   <div className="text-xs text-success">+18% vs last quarter</div>
                 </Card>
                 <Card className="p-6 bg-success-muted/50">
-                  <div className="text-4xl font-bold text-success mb-2">372</div>
+                  <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-success mb-2">372</div>
                   <div className="text-sm text-foreground mb-1">Active Collaborations</div>
                   <div className="text-xs text-success">+24% this month</div>
                 </Card>
                 <Card className="p-6 bg-brand-muted/50">
-                  <div className="text-4xl font-bold text-brand-dark mb-2">94%</div>
+                  <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand-dark mb-2">94%</div>
                   <div className="text-sm text-foreground mb-1">Success Rate</div>
                   <div className="text-xs text-success">Above target</div>
                 </Card>
               </div>
               <Card className="p-6">
-                <h3 className="text-lg font-bold mb-4">Research Output by Department</h3>
+                <h3 className="text-base font-semibold mb-4">Research Output by Department</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={departmentData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -474,9 +429,9 @@ export function ResearchManagerDashboard() {
           {/* ── REPORTS ── */}
           {activeSection === 'reports' && (
             <div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                 <Card className="p-6">
-                  <h3 className="font-bold mb-4">Quick Report Templates</h3>
+                  <h3 className="font-semibold mb-4">Quick Report Templates</h3>
                   <div className="space-y-2">
                     {['Performance Report', 'Collaboration Report', 'Funding Report', 'Trend Analysis'].map(label => (
                       <Button key={label} variant="outline" className="w-full justify-start" onClick={exportReport}>
@@ -487,7 +442,7 @@ export function ResearchManagerDashboard() {
                   </div>
                 </Card>
                 <Card className="p-6">
-                  <h3 className="font-bold mb-4">Recent Reports</h3>
+                  <h3 className="font-semibold mb-4">Recent Reports</h3>
                   <div className="space-y-3">
                     {[
                       { title: 'Q1 Performance Report', date: 'Jan 15, 2024' },
@@ -531,7 +486,7 @@ export function ResearchManagerDashboard() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-bold text-lg">{rec.title}</h3>
+                            <h3 className="font-semibold text-base">{rec.title}</h3>
                             <Badge className={rec.priority === 'High' ? 'bg-destructive/10 text-destructive' : rec.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-brand-muted text-brand-dark'}>
                               {rec.priority} priority
                             </Badge>
@@ -552,7 +507,7 @@ export function ResearchManagerDashboard() {
                 <div className="flex items-start gap-3">
                   <Sparkles className="w-6 h-6 text-brand-dark shrink-0 mt-1" />
                   <div>
-                    <h3 className="font-bold mb-1">About AI Strategic Planning</h3>
+                    <h3 className="font-semibold mb-1">About AI Strategic Planning</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       These recommendations are generated by analysing publication trends, collaboration patterns, funding cycles, and researcher expertise clusters across your institution. Insights are refreshed weekly as new data is indexed.
                     </p>
@@ -579,7 +534,7 @@ export function ResearchManagerDashboard() {
                     <Card key={pub.id} className="p-5 hover:shadow-md transition-all">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="font-bold text-brand-dark mb-1">{pub.title}</h3>
+                          <h3 className="font-semibold text-brand-dark mb-1">{pub.title}</h3>
                           <p className="text-sm text-muted-foreground mb-2">{lead?.name} • {pub.field} • {pub.publicationDate}</p>
                           <p className="text-sm text-foreground line-clamp-2">{pub.abstract}</p>
                           <div className="flex flex-wrap gap-1 mt-2">
@@ -587,7 +542,7 @@ export function ResearchManagerDashboard() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="text-2xl font-bold text-brand-dark">{pub.citations}</div>
+                          <div className="text-lg font-semibold text-brand-dark">{pub.citations}</div>
                           <div className="text-xs text-muted-foreground">citations</div>
                         </div>
                       </div>
@@ -646,12 +601,12 @@ export function ResearchManagerDashboard() {
           {detailProject && (
             <div className="space-y-4">
               <p className="text-foreground text-sm leading-relaxed">{detailProject.description}</p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="bg-brand-muted/50 p-3 rounded-lg"><div className="text-xs text-muted-foreground">Lead Researcher</div><div className="font-semibold text-sm">{detailProject.lead}</div></div>
                 <div className="bg-success-muted/50 p-3 rounded-lg"><div className="text-xs text-muted-foreground">Budget</div><div className="font-semibold text-sm">{detailProject.budget}</div></div>
               </div>
               <div>
-                <div className="flex items-center justify-between text-sm mb-2"><span className="text-muted-foreground">Progress</span><span className="font-bold">{detailProject.progress}%</span></div>
+                <div className="flex items-center justify-between text-sm mb-2"><span className="text-muted-foreground">Progress</span><span className="font-semibold">{detailProject.progress}%</span></div>
                 <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-brand-dark rounded-full" style={{ width: `${detailProject.progress}%` }} />
                 </div>
@@ -670,7 +625,7 @@ export function ResearchManagerDashboard() {
             <div className="space-y-3">
               {teamProject.team.map((member, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 border border-border rounded-lg">
-                  <div className="w-10 h-10 bg-brand-dark rounded-full flex items-center justify-center text-white font-bold">{member.charAt(0)}</div>
+                  <div className="w-10 h-10 bg-brand-dark rounded-full flex items-center justify-center text-white font-semibold">{member.charAt(0)}</div>
                   <div>
                     <div className="font-medium text-sm">{member}</div>
                     <div className="text-xs text-muted-foreground">{i === 0 ? 'Lead Researcher' : 'Team Member'}</div>

@@ -11,8 +11,8 @@ type DashboardPageHeaderProps = {
 
 export function DashboardPageHeader({ title, description, actions, className }: DashboardPageHeaderProps) {
   return (
-    <div className={cn('mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4', className)}>
-      <div>
+    <div className={cn('mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between', className)}>
+      <div className="min-w-0">
         <h1 className={dashboardPageTitleClass}>{title}</h1>
         {description && <p className={dashboardPageSubtitleClass}>{description}</p>}
       </div>

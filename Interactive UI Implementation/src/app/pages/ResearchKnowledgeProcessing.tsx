@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { DashboardPageHeader, tabClass } from '../components/layout';
+import { tabClass } from '../components/layout';
 import { useApp } from '../context/AppContext';
 import { Play, Pause, Square, RotateCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { Progress } from '../components/ui/progress';
@@ -57,11 +57,6 @@ export function ResearchKnowledgeProcessing() {
 
   return (
     <>
-      <DashboardPageHeader
-        title="Research Knowledge Processing"
-        description="Manage NLP processing jobs and data quality metrics"
-      />
-
       <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
         <button
           type="button"
@@ -83,25 +78,25 @@ export function ResearchKnowledgeProcessing() {
         {activeTab === 'jobs' && (
           <div className="space-y-6">
             {/* Summary Stats */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
               <Card className="p-6">
-                <div className="text-3xl font-bold text-brand mb-1">{processingJobs.length}</div>
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-1">{processingJobs.length}</div>
                 <div className="text-sm text-muted-foreground">Total Jobs</div>
               </Card>
               <Card className="p-6">
-                <div className="text-3xl font-bold text-success mb-1">
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-success mb-1">
                   {processingJobs.filter(j => j.status === 'completed').length}
                 </div>
                 <div className="text-sm text-muted-foreground">Completed</div>
               </Card>
               <Card className="p-6">
-                <div className="text-3xl font-bold text-brand mb-1">
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-1">
                   {processingJobs.filter(j => j.status === 'running').length}
                 </div>
                 <div className="text-sm text-muted-foreground">Running</div>
               </Card>
               <Card className="p-6">
-                <div className="text-3xl font-bold text-brand-dark mb-1">
+                <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand-dark mb-1">
                   {processingJobs.reduce((sum, j) => sum + j.documentsProcessed, 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">Documents Processed</div>
@@ -109,10 +104,10 @@ export function ResearchKnowledgeProcessing() {
             </div>
 
             {/* Jobs List & Detail */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Jobs List */}
               <div className="col-span-1 space-y-2">
-                <h3 className="font-bold text-lg mb-4">Jobs Queue</h3>
+                <h3 className="font-semibold text-base mb-4">Jobs Queue</h3>
                 {processingJobs.map(job => (
                   <Card
                     key={job.id}
@@ -142,7 +137,7 @@ export function ResearchKnowledgeProcessing() {
                   <Card className="p-8">
                     <div className="flex items-start justify-between mb-6">
                       <div>
-                        <h3 className="text-2xl font-bold mb-2">{selectedJob.sourceName}</h3>
+                        <h3 className="text-lg font-semibold mb-2">{selectedJob.sourceName}</h3>
                         <p className="text-muted-foreground">{selectedJob.jobType.toUpperCase()} Processing</p>
                       </div>
                       <Badge className={`text-lg px-4 py-2 ${getStatusBadgeVariant(selectedJob.status)}`}>
@@ -162,23 +157,23 @@ export function ResearchKnowledgeProcessing() {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b">
                       <div>
-                        <div className="text-2xl font-bold text-brand">
+                        <div className="text-lg font-semibold text-brand">
                           {selectedJob.documentsProcessed}/{selectedJob.totalDocuments}
                         </div>
                         <div className="text-sm text-muted-foreground">Documents Processed</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-success">{selectedJob.successRate}%</div>
+                        <div className="text-lg font-semibold text-success">{selectedJob.successRate}%</div>
                         <div className="text-sm text-muted-foreground">Success Rate</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-brand-dark">
+                        <div className="text-lg font-semibold text-brand-dark">
                           {selectedJob.keywordsExtracted.toLocaleString()}
                         </div>
                         <div className="text-sm text-muted-foreground">Keywords Extracted</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-warning">
+                        <div className="text-lg font-semibold text-warning">
                           {selectedJob.entitiesFound.toLocaleString()}
                         </div>
                         <div className="text-sm text-muted-foreground">Entities Found</div>
@@ -265,7 +260,7 @@ export function ResearchKnowledgeProcessing() {
             {selectedJob && (
               <Card className="p-8">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2">Data Quality Report</h3>
+                  <h3 className="text-lg font-semibold mb-2">Data Quality Report</h3>
                   <p className="text-muted-foreground">From job: {selectedJob.sourceName}</p>
                 </div>
 
@@ -273,7 +268,7 @@ export function ResearchKnowledgeProcessing() {
                 <div className="mb-8 pb-8 border-b">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-lg font-medium">Overall Quality Score</span>
-                    <div className="text-4xl font-bold text-brand">92/100</div>
+                    <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand">92/100</div>
                   </div>
                   <Progress value={92} className="h-4" />
                 </div>
@@ -283,7 +278,7 @@ export function ResearchKnowledgeProcessing() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <AlertCircle className="w-5 h-5 text-warning" />
-                      <h4 className="font-bold">Missing Data Types</h4>
+                      <h4 className="font-semibold">Missing Data Types</h4>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
@@ -304,7 +299,7 @@ export function ResearchKnowledgeProcessing() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <AlertCircle className="w-5 h-5 text-destructive" />
-                      <h4 className="font-bold">Validation Errors</h4>
+                      <h4 className="font-semibold">Validation Errors</h4>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
@@ -320,9 +315,9 @@ export function ResearchKnowledgeProcessing() {
                 </div>
 
                 {/* Duplicates & Enrichment */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                   <Card className="p-6 bg-brand-muted">
-                    <div className="text-3xl font-bold text-brand mb-2">23</div>
+                    <div className="text-2xl font-semibold tabular-nums sm:text-3xl text-brand mb-2">23</div>
                     <div className="text-sm text-muted-foreground">Duplicate Records Found</div>
                     <Button variant="outline" className="mt-4 w-full">
                       View Duplicates
@@ -332,11 +327,11 @@ export function ResearchKnowledgeProcessing() {
                   <Card className="p-6 bg-success-muted/50">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="text-2xl font-bold text-success">1,180</div>
+                        <div className="text-lg font-semibold text-success">1,180</div>
                         <div className="text-sm text-muted-foreground">Enriched Records</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-warning">68</div>
+                        <div className="text-lg font-semibold text-warning">68</div>
                         <div className="text-xs text-muted-foreground">Pending</div>
                       </div>
                     </div>

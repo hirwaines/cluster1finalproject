@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Card } from '../components/ui/card';
 import { Avatar } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { StatCard, dashboardStatGridClass } from '../components/layout';
+import { usePageHeaderActions } from '../context/PageHeaderContext';
 import { useApp } from '../context/AppContext';
 import { keywordFrequencyFromPublications } from '../utils/collaborationMatch';
 import { Edit, Users, TrendingUp, Award, BookOpen, Calendar, UserPlus, Heart } from 'lucide-react';
@@ -21,26 +23,35 @@ export function MyProfile() {
     }
   }, [user, navigate]);
 
+  const myPublications = user ? research.filter(r => r.researcherId === user.id) : [];
+
+  const headerActions = useMemo(
+    () => (
+      <Button onClick={() => navigate('/settings')}>
+        <Edit className="w-4 h-4 mr-2" />
+        Edit profile
+      </Button>
+    ),
+    [navigate],
+  );
+  usePageHeaderActions(headerActions);
+
   if (!user) {
     return null;
   }
 
-  const myPublications = research.filter(r => r.researcherId === user.id);
-
   return (
-      <div className="p-8 max-w-6xl mx-auto">
-        {/* Profile Header */}
-        <Card className="p-8 mb-8">
-          <div className="flex items-start gap-6 mb-6">
-            <Avatar className="w-32 h-32 bg-brand flex items-center justify-center text-white font-bold text-5xl">
+    <>
+        <Card className="p-5 sm:p-6 mb-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <Avatar className="w-24 h-24 sm:w-28 sm:h-28 bg-brand flex items-center justify-center text-white font-semibold text-4xl shrink-0">
               {user.name.charAt(0)}
             </Avatar>
 
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h1 className="text-3xl font-bold">{user.name}</h1>
+            <div className="min-w-0 flex-1">
+              <div className="mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h2 className="text-xl font-semibold sm:text-2xl">{user.name}</h2>
                     {user.verified && (
                       <span className="text-emerald-700 text-sm font-semibold">Verified ✓</span>
                     )}
@@ -50,43 +61,22 @@ export function MyProfile() {
                         Accredited
                       </Badge>
                     )}
-                  </div>
-                  <p className="text-xl text-muted-foreground mb-2">
-                    {user.position ? `${user.position} • ` : ''}
-                    {user.department && `${user.department} • `}
-                    {user.institution}
-                  </p>
-                  <p className="text-muted-foreground max-w-2xl text-sm">
-                    Your expertise profile is derived from your indexed publications.
-                  </p>
                 </div>
-
-                <div className="flex gap-3">
-                  <Button className="" onClick={() => navigate('/settings')}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit profile
-                  </Button>
-                </div>
+                <p className="text-base text-muted-foreground mb-2 sm:text-lg">
+                  {user.position ? `${user.position} • ` : ''}
+                  {user.department && `${user.department} • `}
+                  {user.institution}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Your expertise profile is derived from your indexed publications.
+                </p>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-brand-muted p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-brand mb-1">{user.publications || 0}</div>
-                  <div className="text-sm text-muted-foreground">Publications</div>
-                </div>
-                <div className="bg-success-muted/50 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-success mb-1">{user.citations || 0}</div>
-                  <div className="text-sm text-muted-foreground">Citations</div>
-                </div>
-                <div className="bg-brand-muted p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-brand mb-1">{user.hIndex || 0}</div>
-                  <div className="text-sm text-muted-foreground">h-index</div>
-                </div>
-                <div className="bg-pink-50 p-4 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-pink-600 mb-1">0</div>
-                  <div className="text-sm text-muted-foreground">Followers</div>
-                </div>
+              <div className={dashboardStatGridClass}>
+                <StatCard label="Publications" value={user.publications || 0} icon={BookOpen} accent="brand" />
+                <StatCard label="Citations" value={user.citations || 0} icon={TrendingUp} accent="info" />
+                <StatCard label="h-index" value={user.hIndex || 0} icon={Award} accent="dark" />
+                <StatCard label="Followers" value={0} icon={Heart} accent="brand" />
               </div>
             </div>
           </div>
@@ -160,7 +150,7 @@ export function MyProfile() {
 
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-xl font-bold text-brand">{pub.title}</h3>
+                        <h3 className="text-base font-semibold text-brand">{pub.title}</h3>
                         <Badge className={
                           pub.fundingStatus === 'funded' ? 'bg-success-muted text-success-foreground' :
                           pub.fundingStatus === 'seeking' ? 'bg-warning-muted text-warning-foreground' :
@@ -201,7 +191,7 @@ export function MyProfile() {
             ) : (
               <Card className="p-12 text-center">
                 <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">No publications yet</h3>
+                <h3 className="text-base font-semibold mb-2">No publications yet</h3>
                 <p className="text-muted-foreground mb-4">Start sharing your research with the community</p>
                 <Button
                   className=""
@@ -217,13 +207,13 @@ export function MyProfile() {
         {activeTab === 'followers' && (
           <Card className="p-12 text-center border-2 border-dashed border-border">
             <UserPlus className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2 text-muted-foreground">No followers yet</h3>
+            <h3 className="text-base font-semibold mb-2 text-muted-foreground">No followers yet</h3>
             <p className="text-muted-foreground text-sm">Share your research to gain followers from the community.</p>
             <Button className="mt-4 " onClick={() => navigate('/researcher/upload')}>
               Share research
             </Button>
           </Card>
         )}
-      </div>
+    </>
   );
 }

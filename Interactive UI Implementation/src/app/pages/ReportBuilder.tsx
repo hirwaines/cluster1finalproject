@@ -17,7 +17,6 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import {
   downloadReport, formatDate,
@@ -218,6 +217,22 @@ interface ReportBuilderProps {
   embedded?: boolean;
 }
 
+// Must be defined outside ReportBuilder — defining it inside creates a new
+// component type every render, which causes React to unmount/remount it
+// constantly and wipes the header action via the cleanup function.
+function ReportBuilderHeaderRegistrar({ onOpen }: { onOpen: () => void }) {
+  const btn = useMemo(
+    () => (
+      <Button onClick={onOpen}>
+        <Plus className="w-4 h-4 mr-2" /> New Report
+      </Button>
+    ),
+    [onOpen],
+  );
+  usePageHeaderActions(btn);
+  return null;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportBuilderProps = {}) {
   const navigate = useNavigate();
@@ -229,7 +244,7 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
 
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'history'>('list');
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
   const [generating, setGenerating] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -244,22 +259,12 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
     if (!user || !['admin', 'manager'].includes(user.role)) navigate('/login');
   }, [user, navigate]);
 
-  // Open dialog when parent passes openCreate=true
   useEffect(() => {
     if (openCreate) {
-      setShowCreateDialog(true);
+      setActiveTab('create');
       onCreateHandled?.();
     }
   }, [openCreate, onCreateHandled]);
-
-  const headerActions = useMemo(() => (
-    embedded ? null : (
-      <Button onClick={() => setShowCreateDialog(true)}>
-        <Plus className="w-4 h-4 mr-2" /> New Report
-      </Button>
-    )
-  ), [embedded]);
-  usePageHeaderActions(headerActions);
 
   if (!user || !['admin', 'manager'].includes(user.role)) return null;
 
@@ -268,7 +273,10 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
   const selectedReportHistory = selectedReportId ? getReportHistory(selectedReportId) : [];
 
   const handleCreateReport = () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+      toast.error('Please enter a report name first');
+      return;
+    }
     createReport({
       name: formData.name,
       type: formData.type,
@@ -282,7 +290,6 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
       status: 'draft',
     });
     setFormData({ name: '', type: 'performance', description: '', schedule: 'monthly', format: 'pdf', sections: [] });
-    setShowCreateDialog(false);
     setActiveTab('list');
     toast.success('Report created. Select it and click "Generate & Download" to export.');
   };
@@ -315,6 +322,7 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
 
   return (
     <>
+      {!embedded && <ReportBuilderHeaderRegistrar onOpen={() => setActiveTab('create')} />}
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border mb-8 overflow-x-auto">
         {([
@@ -336,9 +344,6 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
             <Card className="p-5 sticky top-20">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-base">Reports ({userReports.length})</h3>
-                <Button size="sm" variant="outline" onClick={() => setShowCreateDialog(true)}>
-                  <Plus className="w-3.5 h-3.5" />
-                </Button>
               </div>
               {userReports.length === 0 ? (
                 <div className="py-8 text-center text-muted-foreground text-sm">
@@ -628,7 +633,7 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
               </div>
 
               <div className="flex gap-3 pt-2">
-                <Button onClick={handleCreateReport} disabled={!formData.name.trim()} className="flex-1 gap-2">
+                <Button onClick={handleCreateReport} className="flex-1 gap-2">
                   <Plus className="w-4 h-4" /> Create Report
                 </Button>
                 <Button variant="outline" onClick={() => setActiveTab('list')} className="flex-1">
@@ -684,59 +689,6 @@ export function ReportBuilder({ openCreate, onCreateHandled, embedded }: ReportB
         </Card>
       )}
 
-      {/* ── Quick Create Dialog ───────────────────────────────────────────── */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Quick Create Report</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div>
-              <Label className="mb-2 block">Report Name</Label>
-              <Input
-                placeholder="e.g., Q2 Performance Report"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="mb-2 block">Type</Label>
-              <Select value={formData.type} onValueChange={v => setFormData({ ...formData, type: v as ReportType, sections: [] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(Object.entries(TYPE_META) as [ReportType, typeof TYPE_META[ReportType]][]).map(([key, meta]) => (
-                    <SelectItem key={key} value={key}>{meta.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="mb-2 block">Format</Label>
-              <div className="flex gap-2">
-                {(Object.entries(FORMAT_META) as [ReportFormat, typeof FORMAT_META[ReportFormat]][]).map(([key, meta]) => {
-                  const Icon = meta.icon;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, format: key })}
-                      className={`flex-1 flex flex-col items-center gap-1 p-2.5 rounded-lg border-2 transition-all ${
-                        formData.format === key ? 'border-brand bg-brand-muted' : 'border-border hover:border-border/80'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${meta.color}`} />
-                      <span className="text-xs font-medium">{meta.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <Button onClick={handleCreateReport} className="w-full gap-2" disabled={!formData.name.trim()}>
-              <Plus className="w-4 h-4" /> Create Report
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

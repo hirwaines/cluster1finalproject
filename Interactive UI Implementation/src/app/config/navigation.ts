@@ -51,7 +51,6 @@ const ADMIN_NAV: NavSectionConfig[] = [
   {
     title: 'System',
     items: [
-      { id: 'knowledge', label: 'Processing', href: '/admin/knowledge-processing' },
       { id: 'security', label: 'Security', href: '/admin/security-management' },
       { id: 'integration', label: 'Data sync', href: '/data-integration' },
     ],

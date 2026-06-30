@@ -1,81 +1,79 @@
 package com.umojatech.researchiq.service;
 
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import java.util.List;
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final String RESEND_URL = "https://api.resend.com/emails";
 
-    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${spring.mail.username:}")
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
+
+    @Value("${RESEND_FROM:ResearchIQ <onboarding@resend.dev>}")
     private String fromAddress;
 
     @Async
     public void sendOtp(String to, String subject, String code, String purpose) {
-        if (fromAddress == null || fromAddress.isBlank()) {
-            log.info("[EMAIL SKIPPED – no mail configured] To: {} | {} code: {}", to, purpose, code);
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            log.info("[EMAIL SKIPPED – no RESEND_API_KEY] {} code for {}: {}", purpose, to, code);
             return;
         }
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(buildHtml(purpose, code), true);
-            mailSender.send(msg);
-            log.info("OTP email sent to {} for {} — code: {}", to, purpose, code);
-        } catch (MailException e) {
+            send(to, subject, buildHtml(purpose, code));
+            log.info("OTP email sent to {} for {}", to, purpose);
+        } catch (Exception e) {
             log.error("Failed to send OTP email to {}: {}", to, e.getMessage());
-            log.info("[FALLBACK – use this code in the app] {} code for {}: {}", purpose, to, code);
-        } catch (MessagingException e) {
-            log.error("Failed to build OTP email for {}: {}", to, e.getMessage());
-            log.info("[FALLBACK – use this code in the app] {} code for {}: {}", purpose, to, code);
+            log.info("[FALLBACK – use this code in the app] {} verification code for {}: {}", purpose, to, code);
         }
     }
 
     @Async
-    public void sendContactInquiry(
-            String adminEmail,
-            String fromName,
-            String fromEmail,
-            String subject,
-            String message) {
-        if (fromAddress == null || fromAddress.isBlank()) {
-            log.info(
-                    "[CONTACT – mail not configured] To admin: {} | From: {} <{}> | Subject: {} | Message: {}",
+    public void sendContactInquiry(String adminEmail, String fromName, String fromEmail,
+                                   String subject, String message) {
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            log.info("[CONTACT – no RESEND_API_KEY] To: {} | From: {} <{}> | {}: {}",
                     adminEmail, fromName, fromEmail, subject, message);
             return;
         }
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(adminEmail);
-            helper.setReplyTo(fromEmail);
-            helper.setSubject("[ResearchIQ Contact] " + subject);
-            helper.setText(buildContactHtml(fromName, fromEmail, subject, message), true);
-            mailSender.send(msg);
-            log.info("Contact message sent to admin {} from {} <{}>", adminEmail, fromName, fromEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send contact email to {}: {}", adminEmail, e.getMessage());
-            log.info(
-                    "[CONTACT FALLBACK] To admin: {} | From: {} <{}> | Subject: {} | Message: {}",
-                    adminEmail, fromName, fromEmail, subject, message);
+            send(adminEmail, "[ResearchIQ Contact] " + subject, buildContactHtml(fromName, fromEmail, subject, message));
+            log.info("Contact email sent to {} from {} <{}>", adminEmail, fromName, fromEmail);
+        } catch (Exception e) {
+            log.error("Failed to send contact email: {}", e.getMessage());
+        }
+    }
+
+    private void send(String to, String subject, String html) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(resendApiKey);
+
+        Map<String, Object> body = Map.of(
+                "from", fromAddress,
+                "to", List.of(to),
+                "subject", subject,
+                "html", html
+        );
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                RESEND_URL, HttpMethod.POST,
+                new HttpEntity<>(body, headers), String.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Resend API returned " + response.getStatusCode() + ": " + response.getBody());
         }
     }
 

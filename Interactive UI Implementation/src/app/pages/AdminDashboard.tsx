@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -26,7 +26,6 @@ import {
   Eye,
   Download,
   UserPlus,
-  Cpu,
   Shield,
   BarChart3,
   Database,
@@ -37,6 +36,8 @@ import {
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
+
+const ADMIN_TABS = ['overview', 'accreditations', 'publications', 'funders', 'users', 'import', 'reports'] as const;
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -62,15 +63,7 @@ export function AdminDashboard() {
   const [selectedResearcher, setSelectedResearcher] = useState<string | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
   const [reportCreateOpen, setReportCreateOpen] = useState(false);
-  const [activeTab, setActiveTab] = useDashboardTab('overview', [
-    'overview',
-    'accreditations',
-    'publications',
-    'funders',
-    'users',
-    'import',
-    'reports',
-  ] as const);
+  const [activeTab, setActiveTab] = useDashboardTab('overview', ADMIN_TABS);
   const [staffForm, setStaffForm] = useState({
     name: '',
     email: '',
@@ -143,7 +136,10 @@ export function AdminDashboard() {
     setSelectedResearcher(null);
   };
 
-  const selectedProfile = pendingResearchers.find(r => r.id === selectedResearcher);
+  const selectedProfile = useMemo(
+    () => pendingResearchers.find(r => r.id === selectedResearcher),
+    [pendingResearchers, selectedResearcher],
+  );
 
   const handleDeleteUser = (userId: string, userName: string) => {
     if (window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
@@ -165,6 +161,8 @@ export function AdminDashboard() {
       department: ''
     });
   };
+
+  const handleReportCreateHandled = useCallback(() => setReportCreateOpen(false), []);
 
   const pendingTotal = pendingResearchers.length + pendingFunders.length + pendingPublications.length;
 
@@ -200,7 +198,6 @@ export function AdminDashboard() {
   ];
 
   const systemLinks = [
-    { label: 'Knowledge processing', href: '/admin/knowledge-processing', icon: Cpu },
     { label: 'Security & users', href: '/admin/security-management', icon: Shield },
     { label: 'Report builder', href: '/admin/dashboard?tab=reports', icon: BarChart3 },
     { label: 'Data integration', href: '/data-integration', icon: Database },
@@ -691,10 +688,7 @@ export function AdminDashboard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              if (researcher.role === 'researcher') navigate(`/researcher/profile/${researcher.id}`);
-                              else toast.message('Profile editing for non-researcher accounts is managed through the institution portal.');
-                            }}
+                            onClick={() => navigate(`/admin/security-management`)}
                           >
                             Edit
                           </Button>
@@ -729,7 +723,7 @@ export function AdminDashboard() {
         <ReportBuilder
           embedded
           openCreate={reportCreateOpen}
-          onCreateHandled={() => setReportCreateOpen(false)}
+          onCreateHandled={handleReportCreateHandled}
         />
       )}
 

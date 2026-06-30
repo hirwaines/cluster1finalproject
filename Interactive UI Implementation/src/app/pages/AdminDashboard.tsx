@@ -13,6 +13,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { useApp } from '../context/AppContext';
+import { ReportBuilder } from './ReportBuilder';
 import {
   CheckCircle,
   XCircle,
@@ -32,6 +33,7 @@ import {
   Upload,
   LayoutDashboard,
   ChevronRight,
+  Plus,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
@@ -59,6 +61,7 @@ export function AdminDashboard() {
   } = useApp();
   const [selectedResearcher, setSelectedResearcher] = useState<string | null>(null);
   const [showCreateStaff, setShowCreateStaff] = useState(false);
+  const [reportCreateOpen, setReportCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useDashboardTab('overview', [
     'overview',
     'accreditations',
@@ -66,6 +69,7 @@ export function AdminDashboard() {
     'funders',
     'users',
     'import',
+    'reports',
   ] as const);
   const [staffForm, setStaffForm] = useState({
     name: '',
@@ -93,10 +97,18 @@ export function AdminDashboard() {
   const headerActions = useMemo(
     () => (
       <>
-        <Button variant="outline" size="sm" onClick={() => setActiveTab('import')}>
-          <Upload className="w-4 h-4 mr-2" />
-          Import CSV
-        </Button>
+        {activeTab !== 'reports' && (
+          <Button variant="outline" size="sm" onClick={() => setActiveTab('import')}>
+            <Upload className="w-4 h-4 mr-2" />
+            Import CSV
+          </Button>
+        )}
+        {activeTab === 'reports' && (
+          <Button size="sm" onClick={() => setReportCreateOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Report
+          </Button>
+        )}
         {activeTab === 'users' && (
           <Button size="sm" onClick={() => setShowCreateStaff(true)}>
             <UserPlus className="w-4 h-4 mr-2" />
@@ -190,7 +202,7 @@ export function AdminDashboard() {
   const systemLinks = [
     { label: 'Knowledge processing', href: '/admin/knowledge-processing', icon: Cpu },
     { label: 'Security & users', href: '/admin/security-management', icon: Shield },
-    { label: 'Report builder', href: '/manager/reports', icon: BarChart3 },
+    { label: 'Report builder', href: '/admin/dashboard?tab=reports', icon: BarChart3 },
     { label: 'Data integration', href: '/data-integration', icon: Database },
   ];
 
@@ -208,12 +220,6 @@ export function AdminDashboard() {
               hint={`R:${researchers.filter(r => r.role === 'researcher').length} · F:${researchers.filter(r => r.role === 'funder').length}`}
             />
             <StatCard label="Indexed publications" value={research.length} icon={FileText} accent="dark" />
-            <StatCard
-              label="Collaboration threads"
-              value={collaborationRequests.filter(c => c.status === 'pending' || c.status === 'accepted').length}
-              icon={TrendingUp}
-              accent="brand"
-            />
           </div>
 
           <div className={dashboardTwoColGridClass}>
@@ -303,16 +309,6 @@ export function AdminDashboard() {
                 </div>
                 <p className="text-2xl font-semibold tabular-nums text-brand-dark">{pendingTotal}</p>
                 <p className="mt-1 text-sm text-muted-foreground">Pending verifications</p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-white p-4">
-                <div className="mb-2 flex items-center gap-2 text-brand">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wide">Collaboration</span>
-                </div>
-                <p className="text-2xl font-semibold tabular-nums text-brand-dark">
-                  {collaborationRequests.filter(c => c.status === 'pending').length}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">Open collaboration requests</p>
               </div>
             </div>
           </Card>
@@ -728,6 +724,14 @@ export function AdminDashboard() {
             </div>
           </Card>
         )}
+
+      {activeTab === 'reports' && (
+        <ReportBuilder
+          embedded
+          openCreate={reportCreateOpen}
+          onCreateHandled={() => setReportCreateOpen(false)}
+        />
+      )}
 
       <Dialog open={!!selectedResearcher} onOpenChange={() => setSelectedResearcher(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">

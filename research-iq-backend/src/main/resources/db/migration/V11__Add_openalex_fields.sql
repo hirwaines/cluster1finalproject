@@ -1,0 +1,4 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS h_index        INTEGER,
+    ADD COLUMN IF NOT EXISTS cited_by_count INTEGER,
+    ADD COLUMN IF NOT EXISTS works_count    INTEGER;

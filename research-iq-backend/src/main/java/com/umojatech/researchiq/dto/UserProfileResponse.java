@@ -28,6 +28,10 @@ public class UserProfileResponse {
     private String profilePicture;
     private List<String> expertiseKeywords;
     private List<String> publicationsList;
+    private Integer hIndex;
+    private Integer citedByCount;
+    private Integer worksCount;
+    private List<OpenAlexPublicationDto> openalexPublications;
     private String phone;
     private String organization;
     private List<String> areasOfInterest;

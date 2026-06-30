@@ -28,6 +28,7 @@ import {
   PlusCircle,
   ChevronRight,
 } from 'lucide-react';
+import { ReportBuilder } from './ReportBuilder';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { toast } from 'sonner';
@@ -154,12 +155,7 @@ export function ResearchManagerDashboard() {
             Export List
           </Button>
         )}
-        {activeSection === 'reports' && (
-          <Button onClick={() => navigate('/manager/reports')} className="bg-brand-dark hover:bg-brand-dark">
-            <FileText className="w-4 h-4 mr-2" />
-            Open Report Builder
-          </Button>
-        )}
+        {/* ReportBuilder sets its own header action when reports tab is active */}
         {activeSection === 'publications' && (
           <Button variant="outline" onClick={() => {
             const rows = [['Title', 'Researcher', 'Field', 'Date', 'Citations', 'Keywords']];
@@ -184,7 +180,7 @@ export function ResearchManagerDashboard() {
         </Button>
       </>
     ),
-    [activeSection, selectedDepartment, research, researchers, navigate],
+    [activeSection, selectedDepartment, research, researchers],
   );
   usePageHeaderActions(user?.role === 'manager' ? headerActions : null);
 
@@ -427,43 +423,7 @@ export function ResearchManagerDashboard() {
           )}
 
           {/* ── REPORTS ── */}
-          {activeSection === 'reports' && (
-            <div>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
-                <Card className="p-6">
-                  <h3 className="font-semibold mb-4">Quick Report Templates</h3>
-                  <div className="space-y-2">
-                    {['Performance Report', 'Collaboration Report', 'Funding Report', 'Trend Analysis'].map(label => (
-                      <Button key={label} variant="outline" className="w-full justify-start" onClick={exportReport}>
-                        <Download className="w-4 h-4 mr-2 shrink-0" />
-                        {label}
-                      </Button>
-                    ))}
-                  </div>
-                </Card>
-                <Card className="p-6">
-                  <h3 className="font-semibold mb-4">Recent Reports</h3>
-                  <div className="space-y-3">
-                    {[
-                      { title: 'Q1 Performance Report', date: 'Jan 15, 2024' },
-                      { title: 'Collaboration Metrics', date: 'Jan 10, 2024' },
-                      { title: 'Funding Analysis', date: 'Jan 5, 2024' },
-                    ].map(r => (
-                      <div key={r.title} className="p-3 bg-muted/50 rounded-lg border border-border flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-sm">{r.title}</div>
-                          <div className="text-xs text-muted-foreground">Generated {r.date}</div>
-                        </div>
-                        <Button size="sm" variant="ghost" onClick={exportReport}>
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
-          )}
+          {activeSection === 'reports' && <ReportBuilder />}
 
           {/* ── STRATEGIC PLANNING (AI) ── */}
           {activeSection === 'strategic' && (

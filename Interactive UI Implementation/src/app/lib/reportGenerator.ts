@@ -1,0 +1,301 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+
+export type ReportFormat = 'pdf' | 'excel' | 'csv' | 'html';
+export type ReportType = 'performance' | 'collaboration' | 'funding' | 'trend' | 'custom';
+
+export interface ReportRow {
+  [key: string]: string | number | null | undefined;
+}
+
+export interface ReportSection {
+  title: string;
+  description?: string;
+  columns: string[];
+  rows: ReportRow[];
+  summary?: Record<string, string | number>;
+}
+
+export interface ReportPayload {
+  title: string;
+  type: ReportType;
+  description: string;
+  generatedAt: string;
+  generatedBy: string;
+  sections: ReportSection[];
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '');
+}
+
+function formatDate(d = new Date()) {
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+
+function generatePDF(payload: ReportPayload): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 14;
+
+  // Header band
+  doc.setFillColor(30, 58, 138); // brand blue
+  doc.rect(0, 0, pageW, 28, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ResearchIQ', margin, 11);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Research Intelligence Platform', margin, 18);
+  doc.setFontSize(9);
+  doc.text(`Generated: ${payload.generatedAt}   |   By: ${payload.generatedBy}`, margin, 24);
+
+  // Title
+  doc.setTextColor(30, 41, 59);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text(payload.title, margin, 42);
+
+  if (payload.description) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    const lines = doc.splitTextToSize(payload.description, pageW - margin * 2);
+    doc.text(lines, margin, 50);
+  }
+
+  let y = payload.description ? 58 + Math.max(0, (doc.splitTextToSize(payload.description, pageW - margin * 2).length - 1) * 5) : 55;
+
+  for (const section of payload.sections) {
+    // Section heading
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 138);
+    doc.text(section.title, margin, y);
+    y += 6;
+
+    if (section.description) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      const dl = doc.splitTextToSize(section.description, pageW - margin * 2);
+      doc.text(dl, margin, y);
+      y += dl.length * 4 + 2;
+    }
+
+    if (section.rows.length === 0) {
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.text('No data available for this section.', margin, y + 4);
+      y += 12;
+      continue;
+    }
+
+    autoTable(doc, {
+      startY: y,
+      head: [section.columns],
+      body: section.rows.map(r => section.columns.map(c => r[c] ?? '—')),
+      styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [241, 245, 249] },
+      margin: { left: margin, right: margin },
+    });
+
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+    // Summary row
+    if (section.summary) {
+      if (y > 260) { doc.addPage(); y = 20; }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      const summaryText = Object.entries(section.summary)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('   |   ');
+      doc.text(summaryText, margin, y);
+      y += 8;
+    }
+    y += 4;
+  }
+
+  // Footer on every page
+  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      `Page ${i} of ${pageCount}   |   ResearchIQ — Confidential`,
+      pageW / 2,
+      doc.internal.pageSize.getHeight() - 8,
+      { align: 'center' }
+    );
+  }
+
+  doc.save(`${slugify(payload.title)}_${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+// ── Excel ─────────────────────────────────────────────────────────────────────
+
+function generateExcel(payload: ReportPayload): void {
+  const wb = XLSX.utils.book_new();
+
+  // Cover sheet
+  const coverData = [
+    ['ResearchIQ — Research Intelligence Platform'],
+    [],
+    ['Report Title', payload.title],
+    ['Type', payload.type],
+    ['Description', payload.description],
+    ['Generated At', payload.generatedAt],
+    ['Generated By', payload.generatedBy],
+  ];
+  const coverSheet = XLSX.utils.aoa_to_sheet(coverData);
+  coverSheet['!cols'] = [{ wch: 20 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, coverSheet, 'Cover');
+
+  // One sheet per section
+  for (const section of payload.sections) {
+    const header = section.columns;
+    const rows = section.rows.map(r => section.columns.map(c => r[c] ?? ''));
+    const wsData = [header, ...rows];
+
+    if (section.summary) {
+      wsData.push([]);
+      wsData.push(Object.entries(section.summary).map(([k, v]) => `${k}: ${v}`));
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = header.map(() => ({ wch: 22 }));
+    XLSX.utils.book_append_sheet(wb, ws, section.title.slice(0, 31));
+  }
+
+  XLSX.writeFile(wb, `${slugify(payload.title)}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+// ── CSV ───────────────────────────────────────────────────────────────────────
+
+function generateCSV(payload: ReportPayload): void {
+  const lines: string[] = [];
+  lines.push(`# ResearchIQ Report: ${payload.title}`);
+  lines.push(`# Generated: ${payload.generatedAt}  |  By: ${payload.generatedBy}`);
+  lines.push('');
+
+  for (const section of payload.sections) {
+    lines.push(`## ${section.title}`);
+    if (section.description) lines.push(`# ${section.description}`);
+    lines.push(section.columns.map(c => `"${c}"`).join(','));
+    for (const row of section.rows) {
+      lines.push(section.columns.map(c => `"${String(row[c] ?? '').replace(/"/g, '""')}"`).join(','));
+    }
+    if (section.summary) {
+      lines.push('');
+      lines.push(Object.entries(section.summary).map(([k, v]) => `"${k}","${v}"`).join('\n'));
+    }
+    lines.push('');
+  }
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${slugify(payload.title)}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── HTML ──────────────────────────────────────────────────────────────────────
+
+function generateHTML(payload: ReportPayload): void {
+  const sectionsHtml = payload.sections.map(section => {
+    const tableRows = section.rows.map(r =>
+      `<tr>${section.columns.map(c => `<td>${r[c] ?? '—'}</td>`).join('')}</tr>`
+    ).join('');
+
+    const summaryHtml = section.summary
+      ? `<div class="summary">${Object.entries(section.summary).map(([k, v]) => `<span><strong>${k}:</strong> ${v}</span>`).join(' &nbsp;|&nbsp; ')}</div>`
+      : '';
+
+    return `
+      <section>
+        <h2>${section.title}</h2>
+        ${section.description ? `<p class="desc">${section.description}</p>` : ''}
+        ${section.rows.length === 0 ? '<p class="empty">No data available.</p>' : `
+          <table>
+            <thead><tr>${section.columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+          ${summaryHtml}
+        `}
+      </section>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${payload.title} — ResearchIQ</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; color: #1e293b; background: #f8fafc; }
+    .header { background: #1e3a8a; color: white; padding: 24px 40px; }
+    .header h1 { margin: 0 0 4px; font-size: 22px; }
+    .header .meta { font-size: 12px; opacity: .8; }
+    .brand { font-size: 13px; opacity: .7; margin-bottom: 8px; }
+    .content { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+    .report-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .report-desc { color: #64748b; margin-bottom: 32px; }
+    section { margin-bottom: 40px; }
+    h2 { color: #1e3a8a; font-size: 17px; margin-bottom: 6px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+    .desc { color: #64748b; font-size: 13px; margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    th { background: #1e3a8a; color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+    td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .summary { margin-top: 10px; font-size: 13px; color: #475569; padding: 8px 12px; background: #f1f5f9; border-radius: 6px; }
+    .empty { color: #94a3b8; font-size: 13px; }
+    footer { text-align: center; color: #94a3b8; font-size: 11px; padding: 24px; border-top: 1px solid #e2e8f0; margin-top: 32px; }
+    @media print { body { background: white; } footer { position: fixed; bottom: 0; width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">ResearchIQ — Research Intelligence Platform</div>
+    <h1>${payload.title}</h1>
+    <div class="meta">Generated: ${payload.generatedAt} &nbsp;|&nbsp; By: ${payload.generatedBy}</div>
+  </div>
+  <div class="content">
+    ${payload.description ? `<div class="report-desc">${payload.description}</div>` : ''}
+    ${sectionsHtml}
+  </div>
+  <footer>ResearchIQ — Confidential &nbsp;|&nbsp; ${payload.generatedAt}</footer>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${slugify(payload.title)}_${new Date().toISOString().slice(0, 10)}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export function downloadReport(format: ReportFormat, payload: ReportPayload): void {
+  switch (format) {
+    case 'pdf':   generatePDF(payload);   break;
+    case 'excel': generateExcel(payload); break;
+    case 'csv':   generateCSV(payload);   break;
+    case 'html':  generateHTML(payload);  break;
+  }
+}
+
+export { formatDate };

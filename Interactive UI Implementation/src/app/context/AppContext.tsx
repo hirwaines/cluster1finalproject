@@ -3,6 +3,15 @@ import { api, saveToken, clearToken, saveUser, loadUser } from '../services/api'
 
 export type UserRole = 'researcher' | 'admin' | 'funder' | 'manager' | 'department_head';
 
+export interface OpenAlexPublication {
+  title?: string;
+  doi?: string;
+  year?: number;
+  citedByCount?: number;
+  journal?: string;
+  citation?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -26,6 +35,7 @@ export interface User {
   organizationName?: string;
   investmentRange?: string;
   areasOfInterest?: string[];
+  openalexPublications?: OpenAlexPublication[];
 }
 
 export interface Research {
@@ -39,6 +49,9 @@ export interface Research {
   citations: number;
   doi?: string;
   researcherId: string;
+  researcherName?: string;
+  researcherDepartment?: string;
+  researcherInstitution?: string;
   fundingStatus?: 'seeking' | 'funded' | 'completed';
   fundingAmountNeeded?: string;
   collaborators?: string[];
@@ -1118,7 +1131,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Restore session and load real data on mount
   useEffect(() => {
     const stored = loadUser<User>();
-    if (stored) setUser(stored);
+    if (stored) {
+      setUser(stored);
+      // Refresh profile metrics from DB in background (picks up OpenAlex data saved on ORCID login)
+      api.get<{
+        department?: string; position?: string; institution?: string; orcid?: string;
+        expertiseKeywords?: string[]; profilePicture?: string; joinedDate?: string;
+        hIndex?: number; citedByCount?: number; worksCount?: number;
+        openalexPublications?: OpenAlexPublication[];
+      }>('/users/me')
+        .then(profile => {
+          const refreshed: User = {
+            ...stored,
+            department: profile.department ?? stored.department,
+            position: profile.position ?? stored.position,
+            institution: profile.institution ?? stored.institution,
+            orcid: profile.orcid ?? stored.orcid,
+            expertise: profile.expertiseKeywords ?? stored.expertise,
+            photo: profile.profilePicture ?? stored.photo,
+            hIndex: profile.hIndex ?? stored.hIndex,
+            citations: profile.citedByCount ?? stored.citations,
+            publications: profile.worksCount ?? stored.publications,
+            openalexPublications: profile.openalexPublications ?? stored.openalexPublications,
+            joinedDate: profile.joinedDate
+              ? new Date(profile.joinedDate).toISOString().slice(0, 10)
+              : stored.joinedDate,
+          };
+          saveUser(refreshed);
+          setUser(refreshed);
+        })
+        .catch(() => {});
+    }
 
     // Fetch approved research from backend; fall back to mock on failure
     api.get<Array<{
@@ -1189,7 +1232,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       saveUser(u);
       setUser(u);
       // Load full profile in background
-      api.get<{ id: string; name: string; email: string; role: string; department?: string; position?: string; institution?: string; orcid?: string; expertiseKeywords?: string[]; profilePicture?: string; joinedDate?: string }>('/users/me')
+      api.get<{
+        id: string; name: string; email: string; role: string;
+        department?: string; position?: string; institution?: string; orcid?: string;
+        expertiseKeywords?: string[]; profilePicture?: string; joinedDate?: string;
+        hIndex?: number; citedByCount?: number; worksCount?: number;
+        openalexPublications?: OpenAlexPublication[];
+      }>('/users/me')
         .then(profile => {
           const full: User = {
             ...u,
@@ -1199,6 +1248,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             orcid: profile.orcid,
             expertise: profile.expertiseKeywords,
             photo: profile.profilePicture,
+            hIndex: profile.hIndex,
+            citations: profile.citedByCount,
+            publications: profile.worksCount,
+            openalexPublications: profile.openalexPublications,
             joinedDate: profile.joinedDate ? new Date(profile.joinedDate).toISOString().slice(0, 10) : u.joinedDate,
           };
           saveUser(full);

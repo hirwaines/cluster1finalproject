@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8080/api/v1';
 
 function getToken(): string | null {
   return localStorage.getItem('riq_token');

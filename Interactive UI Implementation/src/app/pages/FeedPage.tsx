@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { useApp } from '../context/AppContext';
 import {
   Heart, MessageCircle, Share2, Bookmark, TrendingUp,
-  Users as UsersIcon, Search, BookOpen,
+  Users as UsersIcon, Search, BookOpen, ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -154,6 +154,9 @@ export function FeedPage() {
             <div className="space-y-4 w-full">
               {filtered.map(post => {
                 const postAuthor = researchers.find(r => r.id === post.researcherId);
+                const authorName = postAuthor?.name ?? post.researcherName ?? 'Researcher';
+                const authorDept = postAuthor?.department ?? post.researcherDepartment;
+                const authorInst = postAuthor?.institution ?? post.researcherInstitution;
                 const isLiked = likedPosts.has(post.id);
                 return (
                   <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-all">
@@ -162,25 +165,27 @@ export function FeedPage() {
                       <div className="flex items-center gap-3">
                         <Avatar
                           className="w-10 h-10 bg-brand flex items-center justify-center text-white font-bold cursor-pointer"
-                          onClick={() => navigate(`/researcher/profile/${postAuthor?.id}`)}
+                          onClick={() => postAuthor && navigate(`/researcher/profile/${postAuthor.id}`)}
                         >
-                          {postAuthor?.name.charAt(0)}
+                          {authorName.charAt(0)}
                         </Avatar>
                         <div>
                           <div
-                            className="font-semibold text-sm cursor-pointer hover:underline"
-                            onClick={() => navigate(`/researcher/profile/${postAuthor?.id}`)}
+                            className={`font-semibold text-sm ${postAuthor ? 'cursor-pointer hover:underline' : ''}`}
+                            onClick={() => postAuthor && navigate(`/researcher/profile/${postAuthor.id}`)}
                           >
-                            {postAuthor?.name}
+                            {authorName}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {postAuthor?.department} · {postAuthor?.institution}
+                            {[authorDept, authorInst].filter(Boolean).join(' · ')}
                           </div>
                         </div>
                       </div>
-                      <Badge className={post.fundingStatus === 'seeking' ? 'bg-warning-muted text-warning-foreground' : 'bg-success-muted text-success-foreground'}>
-                        {post.fundingStatus === 'seeking' ? 'Seeking Funding' : post.fundingStatus}
-                      </Badge>
+                      {post.fundingStatus && (
+                        <Badge className={post.fundingStatus === 'seeking' ? 'bg-warning-muted text-warning-foreground' : 'bg-success-muted text-success-foreground'}>
+                          {post.fundingStatus === 'seeking' ? 'Seeking Funding' : post.fundingStatus}
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Content */}
@@ -216,6 +221,17 @@ export function FeedPage() {
                           <Button size="sm" variant="outline" onClick={() => navigate(`/research/${post.id}`)}>
                             View more
                           </Button>
+                          {post.doi && (
+                            <a
+                              href={post.doi.startsWith('http') ? post.doi : `https://doi.org/${post.doi}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button size="sm" variant="outline" className="gap-1">
+                                <ExternalLink className="w-3.5 h-3.5" /> Read
+                              </Button>
+                            </a>
+                          )}
                           <Button size="sm" className="" onClick={() => setCollaborationTarget(post.id)}>
                             Collaborate
                           </Button>

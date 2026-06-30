@@ -1,8 +1,9 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/researchiq}
-    username: ${DB_USERNAME:researchiq_user}
-    password: ${DB_PASSWORD:researchiq_password}
+    url: jdbc:postgresql://localhost:5432/researchiq
+    username: postgres
+    password: researchiq_password
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: none
@@ -15,16 +16,14 @@ spring:
     baseline-on-migrate: false
     validate-on-migrate: false
     clean-disabled: true
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/researchiq}
-    user: ${DB_USERNAME:researchiq_user}
-    password: ${DB_PASSWORD:researchiq_password}
-  # Email (Gmail SMTP with App Password)
-  # Leave MAIL_USERNAME empty to skip sending and fall back to console log
+    url: jdbc:postgresql://localhost:5432/researchiq
+    user: postgres
+    password: researchiq_password
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    username: ineshirwa8@gmail.com
+    password: gchgzrudqxylzinc
     properties:
       mail:
         smtp:
@@ -40,15 +39,17 @@ logging:
     com.umojatech.researchiq: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
+  file:
+    name: logs/app.log
 
 app:
   security:
     jwt:
-      secretKey: ${JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
-      expirationMs: ${JWT_EXPIRATION_MS:3600000}
-      refreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:86400000}
+      secretKey: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+      expirationMs: 3600000
+      refreshExpirationMs: 86400000
       issuer: "researchiq-dev"
   bootstrap-admin:
-    email: ${BOOTSTRAP_ADMIN_EMAIL:}
-    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
-    name: ${BOOTSTRAP_ADMIN_NAME:System Admin}
+    email: ineshirwa8@gmail.com
+    password: "79544921"
+    name: System Admin

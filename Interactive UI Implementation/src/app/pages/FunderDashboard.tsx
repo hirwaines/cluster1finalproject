@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Briefcase,
   FileText,
+  X,
 } from 'lucide-react';
 import {
   Select,
@@ -87,7 +88,9 @@ export function FunderDashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [interestDraft, setInterestDraft] = useState('');
   const [investmentRange, setInvestmentRange] = useState(user?.investmentRange || '');
-  const [areasDraft, setAreasDraft] = useState((user?.areasOfInterest || []).join(', '));
+  const [orgName, setOrgName] = useState(user?.organizationName || user?.name || '');
+  const [areaChips, setAreaChips] = useState<string[]>(user?.areasOfInterest || []);
+  const [areaInput, setAreaInput] = useState('');
 
   useEffect(() => {
     if (!user || user.role !== 'funder') {
@@ -97,8 +100,9 @@ export function FunderDashboard() {
 
   useEffect(() => {
     if (user?.investmentRange) setInvestmentRange(user.investmentRange);
-    if (user?.areasOfInterest) setAreasDraft(user.areasOfInterest.join(', '));
-  }, [user?.investmentRange, user?.areasOfInterest]);
+    if (user?.areasOfInterest) setAreaChips(user.areasOfInterest);
+    if (user?.organizationName || user?.name) setOrgName(user.organizationName || user?.name || '');
+  }, [user?.investmentRange, user?.areasOfInterest, user?.organizationName, user?.name]);
 
   const org = user?.organizationName || user?.name || '';
 
@@ -165,15 +169,27 @@ export function FunderDashboard() {
 
   const myInterests = funderInterests.filter(i => i.funderId === user.id);
 
+  const addAreaChip = () => {
+    const val = areaInput.trim();
+    if (val && !areaChips.includes(val)) {
+      setAreaChips(prev => [...prev, val]);
+    }
+    setAreaInput('');
+  };
+
+  const removeAreaChip = (chip: string) => {
+    setAreaChips(prev => prev.filter(c => c !== chip));
+  };
+
   const saveProfile = () => {
     updateFunderProfile({
+      organizationName: orgName,
+      name: orgName,
       investmentRange,
-      areasOfInterest: areasDraft
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
+      areasOfInterest: areaChips,
     });
     toast.success('Profile preferences updated.');
+    setProfileOpen(false);
   };
 
   const submitRfp = () => {
@@ -376,20 +392,49 @@ export function FunderDashboard() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Organization</Label>
-              <Input value={org} readOnly className="bg-muted/50" />
+              <Label>Organization name</Label>
+              <Input
+                value={orgName}
+                onChange={e => setOrgName(e.target.value)}
+                placeholder="Your organization or fund name"
+                className="mt-1"
+              />
             </div>
             <div>
-              <Label>Areas of interest (comma-separated)</Label>
-              <Input value={areasDraft} onChange={e => setAreasDraft(e.target.value)} />
+              <Label>Areas of interest</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1 min-h-[36px] p-2 border border-input rounded-md bg-background">
+                {areaChips.map(chip => (
+                  <span key={chip} className="flex items-center gap-1 bg-brand-muted text-brand text-xs px-2 py-0.5 rounded-full">
+                    {chip}
+                    <button type="button" onClick={() => removeAreaChip(chip)} className="hover:text-destructive">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-1.5">
+                <Input
+                  value={areaInput}
+                  onChange={e => setAreaInput(e.target.value)}
+                  placeholder="Add area (e.g. Climate, Health)"
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAreaChip(); } }}
+                  className="text-sm"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={addAreaChip}>Add</Button>
+              </div>
             </div>
             <div>
               <Label>Investment range</Label>
-              <Input value={investmentRange} onChange={e => setInvestmentRange(e.target.value)} />
+              <Input
+                value={investmentRange}
+                onChange={e => setInvestmentRange(e.target.value)}
+                placeholder="e.g. $10,000 – $500,000"
+                className="mt-1"
+              />
             </div>
             <div>
               <Label>Primary contact email</Label>
-              <Input value={user.email} readOnly className="bg-muted/50" />
+              <Input value={user.email} readOnly className="bg-muted/50 mt-1" />
             </div>
             <Button className="w-full bg-brand-dark hover:bg-brand-dark" onClick={saveProfile}>
               Save preferences

@@ -7,10 +7,9 @@ plugins {
 group = 'com.umojatech'
 version = '0.0.1-SNAPSHOT'
 
-// Project spec: Java 21. Local dev falls back to 22 when JDK 21 is not installed.
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(22)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 

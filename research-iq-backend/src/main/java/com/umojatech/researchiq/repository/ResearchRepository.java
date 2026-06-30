@@ -28,4 +28,6 @@ public interface ResearchRepository extends JpaRepository<Research, UUID> {
     List<Research> findByFieldIgnoreCase(@Param("field") String field);
 
     long countByResearcher_Id(UUID researcherId);
+
+    boolean existsByResearcher_IdAndDoi(UUID researcherId, String doi);
 }

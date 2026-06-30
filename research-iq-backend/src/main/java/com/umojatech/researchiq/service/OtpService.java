@@ -89,6 +89,18 @@ public class OtpService {
         passwordResetOtps.remove(normalize(email));
     }
 
+    /** Dev-only: peek at the current unexpired login MFA code without consuming it. */
+    public String peekLoginMfaCode(String email) {
+        OtpRecord r = loginMfaOtps.get(normalize(email));
+        return r != null && r.expiresAtEpochSeconds > Instant.now().getEpochSecond() ? r.code : null;
+    }
+
+    /** Dev-only: peek at the current unexpired email-verification code without consuming it. */
+    public String peekEmailVerificationCode(String email) {
+        OtpRecord r = emailVerificationOtps.get(normalize(email));
+        return r != null && r.expiresAtEpochSeconds > Instant.now().getEpochSecond() ? r.code : null;
+    }
+
     private String issue(Map<String, OtpRecord> store, String email, String purpose) {
         String normalizedEmail = normalize(email);
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));

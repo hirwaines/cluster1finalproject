@@ -79,6 +79,10 @@ public class SecurityConfig {
                         // Public auth endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/contact").permitAll()
+                        // Dev-only OTP peek (controller only active when profile=dev)
+                        .requestMatchers("/api/v1/dev/**").permitAll()
+                        // ORCID lookup — public so researchers can use it during signup (reads OpenAlex only)
+                        .requestMatchers("/api/v1/orcid/**").permitAll()
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/webjars/**").permitAll()
                         // Admin-only endpoints

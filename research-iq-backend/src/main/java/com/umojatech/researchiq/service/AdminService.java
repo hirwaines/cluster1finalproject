@@ -1,6 +1,7 @@
 package com.umojatech.researchiq.service;
 
 import com.umojatech.researchiq.dto.ApproveRejectDto;
+import com.umojatech.researchiq.dto.OpenAlexPublicationDto;
 import com.umojatech.researchiq.dto.PendingPublicationResponse;
 import com.umojatech.researchiq.dto.ResearchResponse;
 import com.umojatech.researchiq.dto.UserDirectoryResponse;
@@ -17,11 +18,17 @@ import com.umojatech.researchiq.repository.PendingPublicationRepository;
 import com.umojatech.researchiq.repository.ResearchRepository;
 import com.umojatech.researchiq.repository.UserRepository;
 import com.umojatech.researchiq.util.CsvUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +39,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminService {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminService.class);
     private static final String USER_NOT_FOUND = "User not found";
     private static final String STATUS_PENDING = "PENDING";
     private static final String AUDIT_SUCCESS = "SUCCESS";
@@ -44,6 +52,7 @@ public class AdminService {
     private final ResearchService researchService;
     private final NotificationService notificationService;
     private final AuditService auditService;
+    private final ObjectMapper objectMapper;
 
 
     public List<UserProfileResponse> getPendingUsers(String role) {
@@ -267,12 +276,26 @@ public class AdminService {
                 .cvUrl(user.getCvUrl())
                 .expertiseKeywords(CsvUtil.toList(user.getExpertiseKeywords()))
                 .publicationsList(CsvUtil.toList(user.getPublicationsList()))
+                .hIndex(user.getHIndex())
+                .citedByCount(user.getCitedByCount())
+                .worksCount(user.getWorksCount())
+                .openalexPublications(parsePublications(user.getOpenalexPublications()))
                 .phone(user.getPhone())
                 .organization(user.getOrganization())
                 .areasOfInterest(CsvUtil.toList(user.getAreasOfInterest()))
                 .investmentRange(user.getInvestmentRange())
                 .joinedDate(user.getCreatedAt())
                 .build();
+    }
+
+    private List<OpenAlexPublicationDto> parsePublications(String json) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<OpenAlexPublicationDto>>() {});
+        } catch (Exception e) {
+            log.warn("Could not parse openalexPublications JSON: {}", e.getMessage());
+            return null;
+        }
     }
 
     private UserDirectoryResponse toDirectoryResponse(User user) {

@@ -1,5 +1,8 @@
 package com.umojatech.researchiq.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.umojatech.researchiq.dto.OpenAlexPublicationDto;
 import com.umojatech.researchiq.dto.UpdateProfileDto;
 import com.umojatech.researchiq.dto.UserProfileResponse;
 import com.umojatech.researchiq.entity.User;
@@ -7,17 +10,23 @@ import com.umojatech.researchiq.exception.ResourceNotFoundException;
 import com.umojatech.researchiq.repository.UserRepository;
 import com.umojatech.researchiq.util.CsvUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public UserProfileResponse getMyProfile(Authentication authentication) {
         User user = getByEmail(authentication.getName());
@@ -59,6 +68,16 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
+    public List<OpenAlexPublicationDto> parsePublications(String json) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<OpenAlexPublicationDto>>() {});
+        } catch (Exception e) {
+            log.warn("Could not parse openalexPublications JSON: {}", e.getMessage());
+            return null;
+        }
+    }
+
     public UserProfileResponse toResponse(User user) {
         return UserProfileResponse.builder()
                 .id(user.getId().toString())
@@ -77,6 +96,10 @@ public class UserService {
                 .profilePicture(user.getProfilePicture())
                 .expertiseKeywords(CsvUtil.toList(user.getExpertiseKeywords()))
                 .publicationsList(CsvUtil.toList(user.getPublicationsList()))
+                .hIndex(user.getHIndex())
+                .citedByCount(user.getCitedByCount())
+                .worksCount(user.getWorksCount())
+                .openalexPublications(parsePublications(user.getOpenalexPublications()))
                 .phone(user.getPhone())
                 .organization(user.getOrganization())
                 .areasOfInterest(CsvUtil.toList(user.getAreasOfInterest()))

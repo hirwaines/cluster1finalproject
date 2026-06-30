@@ -19,6 +19,19 @@ spring:
     password: ${DB_PASSWORD}
     validate-on-migrate: true
     baseline-on-migrate: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        debug: false
 
 logging:
   level:
@@ -29,6 +42,10 @@ app:
   security:
     jwt:
       secretKey: ${JWT_SECRET}
-      expirationMs: ${JWT_EXPIRATION_MS:3600000} 
-      refreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:86400000} 
+      expirationMs: ${JWT_EXPIRATION_MS:3600000}
+      refreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:86400000}
       issuer: "researchiq-prod"
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD}
+    name: ${BOOTSTRAP_ADMIN_NAME:System Admin}

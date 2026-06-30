@@ -60,6 +60,7 @@ export const router = createBrowserRouter([
       { path: '/funder/dashboard', element: <FunderDashboard /> },
       { path: '/manager/dashboard', element: <ResearchManagerDashboard /> },
       { path: '/manager/reports', element: <ReportBuilder /> },
+      { path: '/admin/reports', element: <ReportBuilder /> },
       { path: '/department/dashboard', element: <DepartmentHeadDashboard /> },
     ],
   },

@@ -71,6 +71,18 @@ public class User {
     @Column(name = "publications_list", columnDefinition = "text")
     private String publicationsList;
 
+    @Column(name = "h_index")
+    private Integer hIndex;
+
+    @Column(name = "cited_by_count")
+    private Integer citedByCount;
+
+    @Column(name = "works_count")
+    private Integer worksCount;
+
+    @Column(name = "openalex_publications", columnDefinition = "text")
+    private String openalexPublications;
+
     // Funder profile fields
     @Column(length = 50)
     private String phone;

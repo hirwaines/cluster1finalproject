@@ -4,6 +4,7 @@ import com.umojatech.researchiq.dto.AuthResponse;
 import com.umojatech.researchiq.dto.EmailOtpRequestDto;
 import com.umojatech.researchiq.dto.FunderSignupDto;
 import com.umojatech.researchiq.dto.LoginDto;
+import com.umojatech.researchiq.dto.OrcidLoginDto;
 import com.umojatech.researchiq.dto.PasswordResetConfirmDto;
 import com.umojatech.researchiq.dto.PasswordResetRequestDto;
 import com.umojatech.researchiq.dto.ResearcherSignupDto;
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -72,6 +75,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginDto request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @Operation(summary = "Login with ORCID", description = "Finds the account registered with this ORCID and authenticates with password. Same two-step MFA flow as /login.")
+    @PostMapping("/orcid-login")
+    public ResponseEntity<AuthResponse> orcidLogin(@Valid @RequestBody OrcidLoginDto request) {
+        return ResponseEntity.ok(authService.orcidLogin(request));
     }
 
     @Operation(summary = "Request email verification code", description = "Sends a 6-digit OTP to console (simulates email send).")

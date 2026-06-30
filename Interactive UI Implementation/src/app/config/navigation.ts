@@ -45,6 +45,7 @@ const ADMIN_NAV: NavSectionConfig[] = [
       { id: 'funders', label: 'Funders', href: '/admin/dashboard?tab=funders', badgeFrom: 'funders' },
       { id: 'users', label: 'Users', href: '/admin/dashboard?tab=users' },
       { id: 'import', label: 'Import', href: '/admin/dashboard?tab=import' },
+      { id: 'reports', label: 'Reports', href: '/admin/dashboard?tab=reports' },
     ],
   },
   {
@@ -52,7 +53,6 @@ const ADMIN_NAV: NavSectionConfig[] = [
     items: [
       { id: 'knowledge', label: 'Processing', href: '/admin/knowledge-processing' },
       { id: 'security', label: 'Security', href: '/admin/security-management' },
-      { id: 'reports', label: 'Reports', href: '/manager/reports' },
       { id: 'integration', label: 'Data sync', href: '/data-integration' },
     ],
   },
@@ -68,12 +68,13 @@ const MANAGER_NAV: NavSectionConfig[] = [
       { id: 'analytics', label: 'Analytics', href: '/manager/dashboard?tab=analytics' },
       { id: 'strategic', label: 'Strategy', href: '/manager/dashboard?tab=strategic' },
       { id: 'publications', label: 'Publications', href: '/manager/dashboard?tab=publications' },
+      { id: 'reports', label: 'Reports', href: '/manager/dashboard?tab=reports' },
     ],
   },
   {
     title: 'Tools',
     items: [
-      { id: 'reports', label: 'Report builder', href: '/manager/reports' },
+      { id: 'reports-standalone', label: 'Report builder', href: '/manager/reports' },
       { id: 'integration', label: 'Data sync', href: '/data-integration' },
       { id: 'expertise', label: 'Expertise', href: '/expertise-map' },
       { id: 'network', label: 'Network', href: '/network' },
@@ -108,6 +109,7 @@ const RESEARCHER_NAV: NavSectionConfig[] = [
   {
     items: [
       { id: 'feed', label: 'Feed', href: '/feed' },
+      { id: 'upload', label: 'Submit Research', href: '/researcher/upload' },
       { id: 'requests', label: 'Inbox', href: '/requests', badgeFrom: 'requests' },
       { id: 'analytics', label: 'Analytics', href: '/researcher/analytics' },
       { id: 'network', label: 'Network', href: '/network' },
